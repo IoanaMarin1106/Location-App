@@ -55,11 +55,11 @@ class LocationService: Service() {
 
         stopTimerTask()
 
-//        val broadcastIntent = Intent()
-//        broadcastIntent.action = "restart-service"
-//        broadcastIntent.setClass(this, RestartBackgroundService::class.java)
-//
-//        this.sendBroadcast(broadcastIntent)
+        val broadcastIntent = Intent()
+        broadcastIntent.action = "restart-service"
+        broadcastIntent.setClass(this, RestartBackgroundService::class.java)
+
+        this.sendBroadcast(broadcastIntent)
     }
 
     private fun createNotificationChanel() {

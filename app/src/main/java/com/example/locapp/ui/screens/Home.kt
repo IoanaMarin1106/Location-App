@@ -25,14 +25,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.locapp.R
+import com.example.locapp.downloader.AndroidDownloader
 import com.example.locapp.model.MachineLearningModel
 import com.example.locapp.service.LocationService
+import com.example.locapp.service.SocketService
 import com.example.locapp.viewmodel.ModelViewModel
 import com.example.locapp.viewmodel.ResponseState
 
