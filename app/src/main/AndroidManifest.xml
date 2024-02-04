@@ -34,12 +34,6 @@
             </intent-filter>
         </receiver>
 
-        <receiver android:name=".downloader.DownloadCompletedReceiver" android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.DOWNLOAD_COMPLETE" />
-            </intent-filter>
-        </receiver>
-
         <service
             android:name=".service.LocationService"
             android:enabled="true"
@@ -52,11 +46,14 @@
             android:exported="true">
         </service>
 
-        <service
-            android:name=".service.BuildModelService"
+        <receiver
+            android:name=".downloader.DownloadReceiver"
             android:enabled="true"
-            android:exported="true">
-        </service>
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.DOWNLOAD_COMPLETE" />
+            </intent-filter>
+        </receiver>
 
         <activity
             android:name=".MainActivity"

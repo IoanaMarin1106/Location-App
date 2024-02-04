@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
+import com.example.locapp.collector.DataCollector
 import com.example.locapp.receiver.RestartBackgroundService
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
@@ -22,6 +23,8 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
+import java.io.File
+import java.time.LocalDateTime
 import java.util.Timer
 import java.util.TimerTask
 
@@ -34,6 +37,8 @@ class LocationService: Service() {
     private var timerTask: TimerTask? = null
 
     private val TAG = "LocationService"
+
+    private val dataCollector: DataCollector = DataCollector()
 
     override fun onCreate() {
         super.onCreate()
@@ -71,7 +76,7 @@ class LocationService: Service() {
             NotificationManager.IMPORTANCE_NONE
         )
 
-        chan.lightColor = Color.Blue.toArgb()
+        chan.lightColor = Color.Cyan.toArgb()
         chan.lockscreenVisibility = Notification.VISIBILITY_PRIVATE
 
         val manager = (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
@@ -92,7 +97,7 @@ class LocationService: Service() {
             override fun run() {
                 val count = counter++
                 if (latitude != 0.0 && longitude != 0.0) {
-                    Log.d(TAG, "Location::" + latitude.toString() + ":::" + longitude.toString() + " Count" +
+                    Log.d(TAG, "[Location]:: latitude: " + latitude.toString() + "::: longitude: " + longitude.toString() + " Count: " +
                                 count.toString()
                     )
                 }
@@ -101,7 +106,7 @@ class LocationService: Service() {
         timer!!.schedule(
             timerTask,
             0,
-            1000
+            5000
         ) //1 * 60 * 1000 1 minute
     }
 
@@ -134,6 +139,13 @@ class LocationService: Service() {
                         latitude = location.latitude
                         longitude = location.longitude
                         Log.d(TAG, "location update $location")
+
+                        // check locations file
+                        if (!File(DataCollector.placesFilePath).exists())
+                            dataCollector.refreshLastLocation()
+
+                        // collect location data
+                        dataCollector.storeLocationData(baseContext, latitude, longitude, LocalDateTime.now())
                     }
                 }
             }, null)
