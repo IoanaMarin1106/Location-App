@@ -2,27 +2,36 @@ package com.example.locapp.tflite
 
 import android.os.Environment
 import android.util.Log
+import com.example.locapp.MainActivity
+import com.example.locapp.collector.DataCollector
+import com.example.locapp.utils.Utils
 import org.tensorflow.lite.Interpreter
 import java.io.File
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 class TFLiteModelManager {
 
+    private val utils: Utils = Utils()
     private val TAG = "TFLiteModelManager"
     private var interpreter: Interpreter
 
     init {
-        val modelPath = Environment.getExternalStorageDirectory().path + "/Download/mobility_model_v2.tflite"
-        while(!File(modelPath).exists()) {
+        while(!File("${MainActivity.modelDirectory}/mobility_model.tflite").exists()) {
             Thread.sleep(100)
         }
 
-        interpreter = Interpreter(File(modelPath))
+        interpreter = Interpreter(File("${MainActivity.modelDirectory}/mobility_model.tflite"))
     }
     fun trainModel(): Float {
-        val (features, labels) = generateFakeDataForTraining()
+        val (features, labels) = getDataForTraining()
+
+        // remove places file
+        File(DataCollector.placesFilePath).delete();
+
         var lastLoss = 0f
 
         for (i in 0 until features.size) {
@@ -57,7 +66,10 @@ class TFLiteModelManager {
     }
 
     fun saveModel(checkpointDir: String): String {
-        val outputFile = File(checkpointDir, "checkpoint.ckpt")
+        val time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("HHmmssSSSS"))
+        utils.createDirectoryIfNotExists(checkpointDir)
+
+        val outputFile = File(checkpointDir, "checkpoint-$time.ckpt")
 
         val inputs: MutableMap<String, Any> = HashMap()
         inputs["checkpoint_path"] = outputFile.absolutePath
@@ -67,6 +79,28 @@ class TFLiteModelManager {
         interpreter.runSignature(inputs, outputs, "save")
 
         return outputFile.absolutePath
+    }
+
+    private fun getDataForTraining(): Pair<MutableList<FloatArray>, MutableList<FloatArray>> {
+        val features = mutableListOf<FloatArray>()
+        val labels = mutableListOf<FloatArray>()
+
+        val placesFilePath = Environment.getExternalStorageDirectory().path + "/Download/LocationData/locations.txt"
+        val content = File(placesFilePath).readLines()
+
+        content.forEach {
+            val data = it.split(',')
+            features.add(floatArrayOf(data[0].toFloat(), data[1].toFloat(), data[2].toFloat(), data[3].toFloat()))
+
+            val placeLabel = FloatArray(3426) {0f}
+            placeLabel[data[4].toInt()] = 1f
+            labels.add(placeLabel)
+        }
+
+        Log.d(TAG, "Features: $features")
+        Log.d(TAG, "Labels: $labels")
+
+        return features to labels
     }
 
     private fun generateFakeDataForTraining(): Pair<MutableList<FloatArray>, MutableList<FloatArray>> {

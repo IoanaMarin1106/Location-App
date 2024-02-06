@@ -4,7 +4,6 @@ import SocketManager
 import android.app.Service
 import android.content.Context
 import android.content.Intent
-import android.os.Environment
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
@@ -12,8 +11,10 @@ import android.text.Html
 import android.util.Log
 import android.view.Gravity
 import android.widget.Toast
+import com.example.locapp.MainActivity
 import com.example.locapp.downloader.AndroidDownloader
 import com.example.locapp.tflite.TFLiteModelManager
+import com.example.locapp.utils.Utils
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -24,10 +25,14 @@ import okhttp3.RequestBody.Companion.asRequestBody
 import org.json.JSONObject
 import java.io.File
 import java.io.IOException
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 
 class SocketService: Service() {
     private val socketManager = SocketManager()
+    private val utils = Utils()
     private val modelManager: TFLiteModelManager by lazy {
         TFLiteModelManager()
     }
@@ -43,7 +48,7 @@ class SocketService: Service() {
         // Connecting to Socket
         socketManager.connect()
 
-        val fileExists = File(Environment.getExternalStorageDirectory().path + "/Download/mobility_model_v2.tflite").exists()
+        val fileExists = File("${MainActivity.modelDirectory}/mobility_model.tflite").exists()
         val eventType =  if (fileExists) "reconnect" else "initial_connect"
         val message = if (fileExists) "reconnected" else "connected"
 
@@ -77,7 +82,8 @@ class SocketService: Service() {
                 // TODO: Remove this
                 Thread.sleep(2000)
 
-                val downloadPath = "${Environment.getExternalStorageDirectory().path}/${Environment.DIRECTORY_DOWNLOADS}/"
+                val date = LocalDate.now().format(DateTimeFormatter.ISO_DATE)
+                val downloadPath = "${MainActivity.checkpointsDirectoryPath}/$date/"
                 Log.d(TAG, subfolder)
 
                 modelManager.trainModel()
@@ -112,10 +118,12 @@ class SocketService: Service() {
                 }
 
                 // Add file to the request
-                val file = File("${Environment.getExternalStorageDirectory().path}/${Environment.DIRECTORY_DOWNLOADS}/checkpoint.ckpt")
+                val currentDate = LocalDate.now().format(DateTimeFormatter.ISO_DATE)
+                val file = utils.getLastFileFromDirectory("${MainActivity.checkpointsDirectoryPath}/$currentDate/")
+
                 val mediaType = "application/octet-stream".toMediaTypeOrNull()
                 val fileRequestBody = file.asRequestBody(mediaType)
-                requestBody.addFormDataPart("file", "checkpoint.ckpt", fileRequestBody)
+                requestBody.addFormDataPart("file", file.name, fileRequestBody)
 
                 val request = Request.Builder()
                     .url(url)
@@ -136,7 +144,7 @@ class SocketService: Service() {
                 showToastInIntentService("Download model started")
 
                 val androidDownloader = AndroidDownloader(baseContext)
-                androidDownloader.downloadFile(url, "mobility_model_v2.tflite")
+                androidDownloader.downloadFile(url, "/Model/mobility_model.tflite")
             }
         }
 
@@ -145,7 +153,9 @@ class SocketService: Service() {
                 showToastInIntentService("Get checkpoint started")
 
                 val androidDownloader = AndroidDownloader(baseContext)
-                androidDownloader.downloadFile(url, "checkpoint.ckpt")
+                val date = LocalDate.now().format(DateTimeFormatter.ISO_DATE)
+                val time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("HHmmssSSSS"))
+                androidDownloader.downloadFile(url, "Checkpoints/$date/checkpoint-$time.ckpt")
 
                 // Restore model weights from checkpoint
                 Log.d(TAG, "Restoring model weights from checkpoint...")
