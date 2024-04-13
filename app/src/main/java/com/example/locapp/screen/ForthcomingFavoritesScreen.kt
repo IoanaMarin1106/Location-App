@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.locapp.R
+import com.google.maps.android.compose.GoogleMap
 
 @Composable
 fun ForthcomingFavoritesScreen(
@@ -40,7 +41,7 @@ fun ForthcomingFavoritesScreen(
                 .fillMaxWidth()
                 .height(400.dp)
         ) {
-            // Add your map composable here (e.g., GoogleMap, etc.)
+            GoogleMap(modifier = Modifier.fillMaxWidth())
         }
 
         Spacer(modifier = Modifier

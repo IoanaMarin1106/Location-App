@@ -1,7 +1,6 @@
 package com.example.locapp.screen
 
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,6 +26,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.locapp.R
+import com.google.maps.android.compose.GoogleMap
 
 @Composable
 fun FoodieFootprints(
@@ -52,7 +52,7 @@ fun FoodieFootprints(
                 .fillMaxWidth()
                 .height(200.dp)
         ) {
-            // Add your map composable here (e.g., GoogleMap, etc.)
+            GoogleMap(modifier = Modifier.fillMaxWidth())
         }
 
         // Card with list
@@ -121,8 +121,6 @@ fun FoodieFootprints(
             }
         }
     }
-
-
 }
 
 @Composable

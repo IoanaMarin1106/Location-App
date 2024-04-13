@@ -40,8 +40,9 @@ android {
         viewBinding true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion '1.3.2'
+        kotlinCompilerExtensionVersion '1.4.5'
     }
+
     packagingOptions {
         resources {
             excludes += '/META-INF/{AL2.0,LGPL2.1}'
@@ -96,7 +97,7 @@ dependencies {
     implementation 'io.socket:socket.io-client:2.1.0'
 
     // Coroutines
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.9")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.1")
 
     // Tensorflow Lite
     implementation("org.tensorflow:tensorflow-lite:2.14.0")
@@ -106,4 +107,7 @@ dependencies {
     // Navigation
     def nav_version = '2.7.7'
     implementation "androidx.navigation:navigation-compose:$nav_version"
+
+    // Android Maps Compose composables for the Maps SDK for Android
+    implementation 'com.google.maps.android:maps-compose:4.3.3'
 }
