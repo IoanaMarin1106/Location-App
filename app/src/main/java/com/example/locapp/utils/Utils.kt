@@ -2,19 +2,31 @@ package com.example.locapp.utils
 
 import android.util.Log
 import java.io.File
+import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Paths
 
 class Utils {
-    private val TAG = "UTILS"
 
-    fun createDirectoryIfNotExists(path: String) {
+    companion object {
+        private const val TAG = "UTILS"
+    }
+
+    fun createDirectoryIfNotExists(path: String): Boolean {
         val directory = File(path)
-        if (directory.exists() && directory.isDirectory) {
+        return if (directory.exists() && directory.isDirectory) {
             Log.d(TAG, "$path already exists.")
+            true
         } else {
             Log.d(TAG, "$path does not exists.")
-            Files.createDirectory(Paths.get(path))
+            try {
+                Files.createDirectory(Paths.get(path))
+            } catch (e: IOException)
+            {
+                Log.d(TAG, "Cannot create directory $path.")
+                false
+            }
+            true
         }
     }
 
