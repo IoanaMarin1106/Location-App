@@ -155,10 +155,18 @@ class SocketService: Service() {
                 val androidDownloader = AndroidDownloader(baseContext)
                 val date = LocalDate.now().format(DateTimeFormatter.ISO_DATE)
                 val time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("HHmmssSSSS"))
-                androidDownloader.downloadFile(url, "Checkpoints/$date/checkpoint-$time.ckpt")
+                val checkpointPath = "$date/checkpoint-$time.ckpt"
+                androidDownloader.downloadFile(url, "Checkpoints/$checkpointPath")
 
                 // Restore model weights from checkpoint
                 Log.d(TAG, "Restoring model weights from checkpoint...")
+                val restored = modelManager.restoreModel("${MainActivity.checkpointsDirectoryPath}/$checkpointPath")
+
+                if (restored) {
+                    Log.d(TAG, "Successfully restored model weights from $checkpointPath")
+                } else {
+                    Log.e(TAG, "Failed to restore model weights from $checkpointPath")
+                }
             }
         }
 

@@ -81,6 +81,19 @@ class TFLiteModelManager {
         return outputFile.absolutePath
     }
 
+    fun restoreModel(checkpointPath: String): Boolean {
+        val checkpointFile = File(checkpointPath)
+
+        val inputs: MutableMap<String, Any> = HashMap()
+        inputs["checkpoint_path"] = checkpointFile.absolutePath
+
+        val outputs: Map<String, Any> = HashMap()
+
+        interpreter.runSignature(inputs, outputs, "restore")
+
+        return outputs.isNotEmpty()
+    }
+
     private fun getDataForTraining(): Pair<MutableList<FloatArray>, MutableList<FloatArray>> {
         val features = mutableListOf<FloatArray>()
         val labels = mutableListOf<FloatArray>()
@@ -111,13 +124,13 @@ class TFLiteModelManager {
             floatArrayOf(40.72249953f, -73.98478486f, 4.0f, 21.0f)
         )
 
-        val fb1 = FloatArray(347) {0f}
+        val fb1 = FloatArray(3426) {0f}
         fb1[3] = 1f
-        val fb2 = FloatArray(347) {0f}
+        val fb2 = FloatArray(3426) {0f}
         fb2[0] = 1f
-        val fb3 = FloatArray(347) {0f}
+        val fb3 = FloatArray(3426) {0f}
         fb3[65] = 1f
-        val fb4 = FloatArray(347) {0f}
+        val fb4 = FloatArray(3426) {0f}
         fb4[2] = 1f
         val labels = mutableListOf(
             fb1,fb2,fb3,fb4
