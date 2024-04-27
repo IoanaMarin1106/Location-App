@@ -13,14 +13,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.locapp.downloader.DownloadReceiver
 import com.example.locapp.screen.SetUpNavGraph
 import com.example.locapp.service.LocationService
 import com.example.locapp.service.SocketService
-import com.example.locapp.ui.screens.LocationUpdateButton
 import com.example.locapp.ui.theme.LocAppTheme
 import com.example.locapp.utils.Utils
 
@@ -76,8 +74,6 @@ class MainActivity : ComponentActivity() {
 //                    LocalContext.current.apply {
 //                        startService(Intent(LocalContext.current, SocketService::class.java))
 //                    }
-//
-//                    LocationUpdateButton(context = LocalContext.current)
                 }
             }
         }

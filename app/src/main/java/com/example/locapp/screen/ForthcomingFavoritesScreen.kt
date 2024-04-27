@@ -18,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -26,12 +27,24 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.locapp.R
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.rememberCameraPositionState
 
 @Composable
 fun ForthcomingFavoritesScreen(
     navController: NavController
 ) {
+    val loc1 = LatLng(44.44602184372568, 26.05253086921587)
+    val loc2 = LatLng(44.44511202396272, 26.113712126886508)
+    val loc3 = LatLng(44.43616401396606, 26.096351182709853)
+
+    val cameraPositionState: CameraPositionState = rememberCameraPositionState {
+        position = CameraPosition.fromLatLngZoom(loc1, 11f)
+    }
+
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -41,7 +54,29 @@ fun ForthcomingFavoritesScreen(
                 .fillMaxWidth()
                 .height(400.dp)
         ) {
-            GoogleMap(modifier = Modifier.fillMaxWidth())
+            GoogleMap(
+                cameraPositionState = cameraPositionState,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                MapMarker(
+                    context = LocalContext.current,
+                    position = loc1,
+                    title = "Pub 18",
+                    iconSourceId = R.drawable.map
+                )
+                MapMarker(
+                    context = LocalContext.current,
+                    position = loc2,
+                    title = "balls",
+                    iconSourceId = R.drawable.map
+                )
+                MapMarker(
+                    context = LocalContext.current,
+                    position = loc3,
+                    title = "AveForchetta",
+                    iconSourceId = R.drawable.map
+                )
+            }
         }
 
         Spacer(modifier = Modifier
