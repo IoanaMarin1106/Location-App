@@ -6,4 +6,6 @@
     <string name="loading">Loading</string>
     <string name="model_url">Model url</string>
     <string name="google_maps_api_key"></string>
+    <string name="future_vision_loader_message">Hold your forks! Let\'s see what delicious eats destiny has in store for you today!</string>
+    <string name="future_vision_loader_prediction_waiting_message">Spinning the wheel of culinary fate! Get ready to be surprised (and hopefully delighted) by your next foodie stop." </string>
 </resources>

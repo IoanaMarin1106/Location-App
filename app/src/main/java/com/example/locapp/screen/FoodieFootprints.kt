@@ -57,10 +57,7 @@ fun FoodieFootprints(
     navController: NavController
 ) {
     val lastThreeUniqueIds = DataCollector.ids.distinct().takeLast(3)
-    Log.d("TAG", "Foodie footprints ${lastThreeUniqueIds[0]} ${lastThreeUniqueIds[1]} ${lastThreeUniqueIds[2]}")
-
     val matchingPlaces = MainActivity.placeList.filter { place -> lastThreeUniqueIds.contains(place.placeId.toString()) }
-    Log.d("TAG", "Foodie footprints ${matchingPlaces[0].name} ${matchingPlaces[1].name} ${matchingPlaces[2].name}")
 
     val locationsList = matchingPlaces.map {
         LocationInfo(it.name, LatLng((it.nLatitude + it.sLatitude) / 2, (it.wLongitude + it.eLongitude) / 2))
@@ -162,7 +159,7 @@ fun FoodieFootprints(
                     colors = ButtonDefaults.buttonColors(
                         containerColor = colorResource(id = R.color.colorBackgroundDark)
                     ),
-                    onClick = { navController.navigate(ScreenHolder.ForthcomingFavorites.route) }
+                    onClick = { navController.navigate(ScreenHolder.FutureVisionLoader.route) }
                 ) {
                     Text("START")
                 }

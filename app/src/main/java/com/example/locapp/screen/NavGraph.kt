@@ -19,5 +19,8 @@ fun SetUpNavGraph(
         composable(route = ScreenHolder.ForthcomingFavorites.route) { ForthcomingFavoritesScreen(
             navController = navController
         )}
+        composable(route = ScreenHolder.FutureVisionLoader.route) {
+            FutureVisionLoaderScreen(navController = navController)
+        }
     }
 }
