@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import android.widget.Toast
-import androidx.compose.material3.contentColorFor
 import com.example.locapp.service.LocationService
 import com.example.locapp.service.SocketService
 

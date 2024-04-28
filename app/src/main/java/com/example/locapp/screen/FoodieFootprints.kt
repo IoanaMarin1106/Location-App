@@ -3,13 +3,19 @@ package com.example.locapp.screen
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.util.Log
 import androidx.annotation.DrawableRes
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -17,21 +23,23 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import com.example.locapp.MainActivity
 import com.example.locapp.R
-import com.example.locapp.viewmodel.FoodieFootprintViewModel
+import com.example.locapp.collector.DataCollector
 import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
@@ -42,19 +50,24 @@ import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 
+data class LocationInfo(val name: String, val latLong: LatLng)
+
 @Composable
 fun FoodieFootprints(
-    viewModel: FoodieFootprintViewModel,
     navController: NavController
 ) {
-//    val places = viewModel.locationsStateFlow.value
+    val lastThreeUniqueIds = DataCollector.ids.distinct().takeLast(3)
+    Log.d("TAG", "Foodie footprints ${lastThreeUniqueIds[0]} ${lastThreeUniqueIds[1]} ${lastThreeUniqueIds[2]}")
 
-    val loc1 = LatLng(44.4601146228763, 26.10057459989893)
-    val loc2 = LatLng(44.43653280264863, 26.035486225039016)
-    val loc3 = LatLng(44.43105136223451, 26.097028642227286)
+    val matchingPlaces = MainActivity.placeList.filter { place -> lastThreeUniqueIds.contains(place.placeId.toString()) }
+    Log.d("TAG", "Foodie footprints ${matchingPlaces[0].name} ${matchingPlaces[1].name} ${matchingPlaces[2].name}")
+
+    val locationsList = matchingPlaces.map {
+        LocationInfo(it.name, LatLng((it.nLatitude + it.sLatitude) / 2, (it.wLongitude + it.eLongitude) / 2))
+    }.toMutableList()
 
     val cameraPositionState: CameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(loc1, 11f)
+        position = CameraPosition.fromLatLngZoom(locationsList[0].latLong, 11f)
     }
 
     Column(
@@ -80,24 +93,14 @@ fun FoodieFootprints(
                 cameraPositionState = cameraPositionState,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                MapMarker(
-                    context = LocalContext.current,
-                    position = loc1,
-                    title = "VacaMUU",
-                    iconSourceId = R.drawable.map
-                )
-                MapMarker(
-                    context = LocalContext.current,
-                    position = loc2,
-                    title = "Roz Cafe",
-                    iconSourceId = R.drawable.map
-                )
-                MapMarker(
-                    context = LocalContext.current,
-                    position = loc3,
-                    title = "MOM",
-                    iconSourceId = R.drawable.map
-                )
+                locationsList.forEach { location ->
+                    MapMarker(
+                        context = LocalContext.current,
+                        position = location.latLong,
+                        title = location.name,
+                        iconSourceId = R.drawable.pin
+                    )
+                }
             }
         }
 
@@ -113,24 +116,23 @@ fun FoodieFootprints(
             Column(modifier = Modifier
                 .padding(16.dp)
                 .align(CenterHorizontally)) {
-                Text(
-                    text = "#1 VacaMUU",
-                    textAlign = TextAlign.Center,
-                    fontSize = MaterialTheme.typography.headlineSmall.fontSize,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Text(
-                    text = "#2 Roz Cafe",
-                    textAlign = TextAlign.Center,
-                    fontSize = MaterialTheme.typography.headlineSmall.fontSize,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Text(
-                    text = "#3 MOM",
-                    textAlign = TextAlign.Center,
-                    fontSize = MaterialTheme.typography.headlineSmall.fontSize,
-                    fontWeight = FontWeight.SemiBold
-                )
+
+                locationsList.forEach { location ->
+                    Row {
+                        Image(
+                            painter = painterResource(id = R.drawable.pin),
+                            contentDescription = location.name,
+                            modifier = Modifier.size(28.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = location.name,
+                            textAlign = TextAlign.Center,
+                            fontSize = MaterialTheme.typography.headlineSmall.fontSize,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
             }
         }
 
@@ -205,11 +207,10 @@ fun bitmapDescriptorFromVector(
     return BitmapDescriptorFactory.fromBitmap(bm)
 }
 
-//@Composable
-//@Preview(showBackground = true)
-//fun FoodieFootprintsPreview() {
-//    FoodieFootprints(
-//        viewModel = FoodieFootprintsPreviewData(),
-//        navController = rememberNavController()
-//    )
-//}
+@Composable
+@Preview(showBackground = true)
+fun FoodieFootprintsPreview() {
+    FoodieFootprints(
+        navController = rememberNavController()
+    )
+}

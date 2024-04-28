@@ -28,6 +28,7 @@ import java.time.LocalDateTime
 import java.util.Timer
 import java.util.TimerTask
 
+
 class LocationService: Service() {
     var counter = 0
     var latitude: Double = 0.0
@@ -138,6 +139,7 @@ class LocationService: Service() {
                     if (location != null) {
                         latitude = location.latitude
                         longitude = location.longitude
+
                         Log.d(TAG, "location update $location")
 
                         // check locations file

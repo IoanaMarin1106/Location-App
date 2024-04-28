@@ -15,6 +15,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.example.locapp.collector.JsonReader
+import com.example.locapp.collector.Place
 import com.example.locapp.downloader.DownloadReceiver
 import com.example.locapp.screen.SetUpNavGraph
 import com.example.locapp.service.LocationService
@@ -30,13 +32,19 @@ class MainActivity : ComponentActivity() {
 
     companion object {
         private const val TAG = "MAIN ACTIVITY"
+
         val checkpointsDirectoryPath = Environment.getExternalStorageDirectory().path + "/Download/Checkpoints"
         val modelDirectory = Environment.getExternalStorageDirectory().path + "/Download/Model"
+        val locationDataFilePath = Environment.getExternalStorageDirectory().path + "/Download/LocationData/locations.txt"
+        lateinit var placeList: List<Place>
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Example usage:
+        placeList = JsonReader.readJsonFromAssets("places-mobile.json", this.applicationContext)
 
         Log.d(TAG, "On create")
 

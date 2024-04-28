@@ -62,19 +62,19 @@ fun ForthcomingFavoritesScreen(
                     context = LocalContext.current,
                     position = loc1,
                     title = "Pub 18",
-                    iconSourceId = R.drawable.map
+                    iconSourceId = R.drawable.pin
                 )
                 MapMarker(
                     context = LocalContext.current,
                     position = loc2,
                     title = "balls",
-                    iconSourceId = R.drawable.map
+                    iconSourceId = R.drawable.pin
                 )
                 MapMarker(
                     context = LocalContext.current,
                     position = loc3,
                     title = "AveForchetta",
-                    iconSourceId = R.drawable.map
+                    iconSourceId = R.drawable.pin
                 )
             }
         }

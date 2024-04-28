@@ -15,6 +15,7 @@ class DataCollector {
 
     companion object {
         val placesFilePath = Environment.getExternalStorageDirectory().path + "/Download/LocationData/locations.txt"
+        var ids: List<String> = JsonReader.readFoodieFootprints()
     }
 
     private var lastLocation: Triple<Int, Int, Int> = if (File(placesFilePath).exists()) {
@@ -50,6 +51,7 @@ class DataCollector {
             if (placeId != lastLocation.third || (hour != lastLocation.first || dayOfWeek != lastLocation.second)) {
                 lastLocation = Triple(hour, dayOfWeek, placeId)
                 append(latitude.toString(), longitude.toString(), hour.toString(), dayOfWeek.toString(), placeId.toString())
+                ids.plus(placeId.toString())
             }
         }
     }

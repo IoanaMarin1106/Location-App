@@ -5,7 +5,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.example.locapp.viewmodel.FoodieFootprintViewModel
 
 @Composable
 fun SetUpNavGraph(
@@ -16,7 +15,7 @@ fun SetUpNavGraph(
         startDestination = ScreenHolder.Home.route
     ) {
         composable(route = ScreenHolder.Home.route) { HomeScreen(navController = navController, context = LocalContext.current) }
-        composable(route = ScreenHolder.FoodieFootprints.route) { FoodieFootprints(viewModel = FoodieFootprintViewModel(), navController = navController) }
+        composable(route = ScreenHolder.FoodieFootprints.route) { FoodieFootprints(navController = navController) }
         composable(route = ScreenHolder.ForthcomingFavorites.route) { ForthcomingFavoritesScreen(
             navController = navController
         )}
