@@ -94,6 +94,37 @@ class TFLiteModelManager {
         return outputs.isNotEmpty()
     }
 
+    fun predict(lat: Float, long: Float, day: Int, hour: Int): Map<Int, Float> {
+        val features = ByteBuffer.allocateDirect(4 * Float.SIZE_BYTES).order(ByteOrder.nativeOrder())
+        features.apply {
+            putFloat(lat)
+            putFloat(long)
+            putFloat(day.toFloat())
+            putFloat(hour.toFloat())
+        }
+        features.rewind()
+
+        val probabilities = FloatBuffer.allocate(3426)
+
+        val inputs: MutableMap<String, Any> = HashMap()
+        val outputs: MutableMap<String, Any> = HashMap()
+
+        inputs["features"] = features
+        outputs["output"] = probabilities
+
+        interpreter.runSignature(inputs, outputs, "infer")
+
+        probabilities.rewind()
+
+        val probabilitiesMap: MutableMap<Int, Float> = HashMap()
+
+        for (i in 0 until 3426) {
+            probabilitiesMap[i] = probabilities.get()
+        }
+
+        return probabilitiesMap
+    }
+
     private fun getDataForTraining(): Pair<MutableList<FloatArray>, MutableList<FloatArray>> {
         val features = mutableListOf<FloatArray>()
         val labels = mutableListOf<FloatArray>()
