@@ -1,5 +1,7 @@
 package com.example.locapp.screen
 
+import android.os.Bundle
+import android.util.Log
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
@@ -42,8 +44,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
+import androidx.navigation.NavHostController
 import com.example.locapp.R
+import com.example.locapp.viewmodel.PredictionsSharedViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -61,11 +64,14 @@ fun progressFlow(targetProgress: Float = 1f, step: Float = 0.007f, delayTime: Lo
 
 @Composable
 fun FutureVisionLoaderScreen(
-    navController: NavController
+    navController: NavHostController,
+    predictionsSharedViewModel: PredictionsSharedViewModel = PredictionsSharedViewModel()
 ) {
     val progressFlow = remember { progressFlow(delayTime = 10L) }
     val progressState = progressFlow.collectAsState(initial = 0f)
     var showCompletionText by remember { mutableStateOf(false) }
+
+    val predictions by predictionsSharedViewModel.predictionsState.collectAsState()
 
     LaunchedEffect(Unit) {
         progressFlow.collect { value ->
@@ -118,7 +124,11 @@ fun FutureVisionLoaderScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp, vertical = 24.dp)
                     .clickable(
-                        onClick = { navController.navigate(ScreenHolder.ForthcomingFavorites.route) }
+                        onClick = {
+                            val places = predictions.predictions.map { it.first }.toIntArray()
+                            val placeIds = places.joinToString(",")
+                            navController.navigate("forthcoming_favorites_screen/${placeIds}")
+                        }
                     ))
                 {
                     Text(
@@ -204,10 +214,10 @@ fun CustomerCircularProgressBarPreview() {
     )
 }
 
-@Composable
-@Preview(showBackground = true)
-fun FutureVisionLoaderPreview() {
-    FutureVisionLoaderScreen(
-        navController = rememberNavController()
-    )
-}
+//@Composable
+//@Preview(showBackground = true)
+//fun FutureVisionLoaderPreview() {
+//    FutureVisionLoaderScreen(
+//        navController = rememberNavController()
+//    )
+//}

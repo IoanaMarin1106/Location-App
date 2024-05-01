@@ -19,8 +19,25 @@ class TFLiteModelManager {
     private val TAG = "TFLiteModelManager"
     private var interpreter: Interpreter
 
+    companion object {
+        const val NUMBER_OF_FEATURES = 2
+        const val NUMBER_OF_KNOWN_PLACES = 3426
+
+
+        const val INFER = "infer"
+        const val RESTORE = "restore"
+        const val SAVE = "save"
+        const val TRAIN = "train"
+
+        const val FEATURES = "features"
+        const val LABEL = "label"
+        const val LOSS = "loss"
+        const val OUTPUT = "output"
+    }
+
     init {
         while(!File("${MainActivity.modelDirectory}/mobility_model.tflite").exists()) {
+            Log.d(TAG, "Mobility model does not exists.")
             Thread.sleep(100)
         }
 
@@ -35,25 +52,25 @@ class TFLiteModelManager {
         var lastLoss = 0f
 
         for (i in 0 until features.size) {
-            val f = ByteBuffer.allocateDirect(4 * features[i].size).order(ByteOrder.nativeOrder())
+            val f = ByteBuffer.allocateDirect(Float.SIZE_BYTES * features[i].size).order(ByteOrder.nativeOrder())
             features[i].forEach { f.putFloat(it) }
             f.rewind()
 
-            val l = ByteBuffer.allocate(4 * labels[i].size).order(ByteOrder.nativeOrder())
+            val l = ByteBuffer.allocate(Float.SIZE_BYTES * labels[i].size).order(ByteOrder.nativeOrder())
             labels[i].forEach { l.putFloat(it) }
             l.rewind()
 
             val inputs: MutableMap<String, Any> = HashMap()
             val outputs: MutableMap<String, Any> = HashMap()
 
-            inputs["features"] = f
-            inputs["label"] = l
+            inputs[FEATURES] = f
+            inputs[LABEL] = l
 
             val loss = FloatBuffer.allocate(1)
 
-            outputs["loss"] = loss
+            outputs[LOSS] = loss
 
-            interpreter.runSignature(inputs, outputs, "train")
+            interpreter.runSignature(inputs, outputs, TRAIN)
 
             if (i == features.size - 1) {
                 loss.rewind()
@@ -76,7 +93,7 @@ class TFLiteModelManager {
 
         val outputs: Map<String, Any> = HashMap()
 
-        interpreter.runSignature(inputs, outputs, "save")
+        interpreter.runSignature(inputs, outputs, SAVE)
 
         return outputFile.absolutePath
     }
@@ -89,36 +106,34 @@ class TFLiteModelManager {
 
         val outputs: Map<String, Any> = HashMap()
 
-        interpreter.runSignature(inputs, outputs, "restore")
+        interpreter.runSignature(inputs, outputs, RESTORE)
 
         return outputs.isNotEmpty()
     }
 
-    fun predict(lat: Float, long: Float, day: Int, hour: Int): Map<Int, Float> {
-        val features = ByteBuffer.allocateDirect(4 * Float.SIZE_BYTES).order(ByteOrder.nativeOrder())
+    fun predict(day: Int, hour: Int): Map<Int, Float> {
+        val features = ByteBuffer.allocateDirect(NUMBER_OF_FEATURES * Float.SIZE_BYTES).order(ByteOrder.nativeOrder())
         features.apply {
-            putFloat(lat)
-            putFloat(long)
             putFloat(day.toFloat())
             putFloat(hour.toFloat())
         }
         features.rewind()
 
-        val probabilities = FloatBuffer.allocate(3426)
+        val probabilities = FloatBuffer.allocate(NUMBER_OF_KNOWN_PLACES)
 
         val inputs: MutableMap<String, Any> = HashMap()
         val outputs: MutableMap<String, Any> = HashMap()
 
-        inputs["features"] = features
-        outputs["output"] = probabilities
+        inputs[FEATURES] = features
+        outputs[OUTPUT] = probabilities
 
-        interpreter.runSignature(inputs, outputs, "infer")
+        interpreter.runSignature(inputs, outputs, INFER)
 
         probabilities.rewind()
 
         val probabilitiesMap: MutableMap<Int, Float> = HashMap()
 
-        for (i in 0 until 3426) {
+        for (i in 0 until NUMBER_OF_KNOWN_PLACES) {
             probabilitiesMap[i] = probabilities.get()
         }
 
@@ -134,9 +149,9 @@ class TFLiteModelManager {
 
         content.forEach {
             val data = it.split(',')
-            features.add(floatArrayOf(data[0].toFloat(), data[1].toFloat(), data[2].toFloat(), data[3].toFloat()))
+            features.add(floatArrayOf(data[2].toFloat(), data[3].toFloat()))
 
-            val placeLabel = FloatArray(3426) {0f}
+            val placeLabel = FloatArray(NUMBER_OF_KNOWN_PLACES) {0f}
             placeLabel[data[4].toInt()] = 1f
             labels.add(placeLabel)
         }

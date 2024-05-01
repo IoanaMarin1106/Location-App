@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -20,6 +21,10 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -29,8 +34,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.example.locapp.MainActivity
 import com.example.locapp.R
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
@@ -40,12 +46,17 @@ import com.google.maps.android.compose.rememberCameraPositionState
 
 @Composable
 fun ForthcomingFavoritesScreen(
-    navController: NavController
+    navController: NavHostController,
+    placeIds: IntArray,
 ) {
-    val loc1 = LatLng(44.44602184372568, 26.05253086921587)
+    val locationsList = MainActivity.placeList.filter {
+        placeIds.contains(it.placeId)
+    }.map {
+        LocationInfo(it.name, LatLng((it.nLatitude + it.sLatitude) / 2, (it.wLongitude + it.eLongitude) / 2))
+    }.toMutableList()
 
     val cameraPositionState: CameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(loc1, 11f)
+        position = CameraPosition.fromLatLngZoom(locationsList[0].latLong, 11f)
     }
 
     Column(
@@ -61,14 +72,14 @@ fun ForthcomingFavoritesScreen(
                 cameraPositionState = cameraPositionState,
                 modifier = Modifier.fillMaxWidth()
             ) {
-//                locationsList.forEach { location ->
-//                    MapMarker(
-//                        context = LocalContext.current,
-//                        position = location.latLong,
-//                        title = location.name,
-//                        iconSourceId = R.drawable.pin
-//                    )
-//                }
+                locationsList.forEach { location ->
+                    MapMarker(
+                        context = LocalContext.current,
+                        position = location.latLong,
+                        title = location.name,
+                        iconSourceId = R.drawable.pin
+                    )
+                }
             }
         }
 
@@ -82,56 +93,10 @@ fun ForthcomingFavoritesScreen(
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             colors = CardDefaults.cardColors(
-                containerColor = colorResource(id = R.color.colorBackground)
+                containerColor = colorResource(id = R.color.colorSecondary)
             )
         ) {
-            Column(modifier = Modifier
-                .padding(16.dp)
-                .align(CenterHorizontally)
-            ) {
-                Card(
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .align(CenterHorizontally)
-                        .verticalScroll(state = rememberScrollState())
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .align(CenterHorizontally),
-                    ) {
-//                        locationsList.forEach { location ->
-//                            Row {
-//                                Image(
-//                                    painter = painterResource(id = R.drawable.pin),
-//                                    contentDescription = location.name,
-//                                    modifier = Modifier.size(28.dp)
-//                                )
-//                                Spacer(modifier = Modifier.width(8.dp))
-//                                Text(
-//                                    text = location.name,
-//                                    textAlign = TextAlign.Center,
-//                                    fontSize = MaterialTheme.typography.headlineSmall.fontSize,
-//                                    fontWeight = FontWeight.SemiBold
-//                                )
-//                            }
-//                        }
-                    }
-                }
-
-                Button(
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .align(CenterHorizontally),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = colorResource(id = R.color.colorBackgroundDark)
-                    ),
-                    onClick = {  }
-                ) {
-                    Text("More")
-                }
-            }
-
+            LocationList(locationsList = locationsList)
         }
 
         Button(
@@ -152,9 +117,68 @@ fun ForthcomingFavoritesScreen(
 }
 
 @Composable
-@Preview(showBackground = true)
-fun ForthcomingFavoritesPreview() {
-    ForthcomingFavoritesScreen(
-        navController = rememberNavController()
-    )
+fun LocationList(locationsList: MutableList<LocationInfo>) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier
+            .padding(16.dp)
+            .height(200.dp)
+            .verticalScroll(state = rememberScrollState())
+    ) {
+        val displayedLocations = if (expanded) {
+            locationsList
+        } else {
+            locationsList.take(3)
+        }
+
+        displayedLocations.forEach { location ->
+            Row {
+                Image(
+                    painter = painterResource(id = R.drawable.pin),
+                    contentDescription = location.name,
+                    modifier = Modifier.size(28.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = location.name,
+                    textAlign = TextAlign.Left,
+                    fontSize = MaterialTheme.typography.headlineSmall.fontSize,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+        }
+
+        if (!expanded && locationsList.size > 3) {
+            Button(
+                modifier = Modifier.padding(16.dp).align(CenterHorizontally),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = colorResource(id = R.color.colorBackgroundDark)
+                ),
+                onClick = { expanded = true },
+            ) {
+                Text("Show More")
+            }
+        } else if (expanded) {
+            Button(
+                modifier = Modifier.padding(16.dp).align(CenterHorizontally),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = colorResource(id = R.color.colorBackgroundDark)
+                ),
+                onClick = { expanded = false },
+            ) {
+                Text("Show Less")
+            }
+        }
+    }
 }
+
+
+//@Composable
+//@Preview(showBackground = true)
+//fun ForthcomingFavoritesPreview() {
+//    ForthcomingFavoritesScreen(
+//        navController = rememberNavController(),
+//
+//    )
+//}

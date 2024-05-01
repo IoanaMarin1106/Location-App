@@ -22,6 +22,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.navigation.NavHost
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.locapp.R
 import com.example.locapp.service.LocationService
@@ -29,7 +31,7 @@ import com.example.locapp.service.LocationService
 @Composable
 fun HomeScreen(
     context: Context,
-    navController: NavController
+    navController: NavHostController
 ) {
 
     Column(

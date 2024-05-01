@@ -35,7 +35,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.locapp.MainActivity
 import com.example.locapp.R
@@ -54,7 +54,7 @@ data class LocationInfo(val name: String, val latLong: LatLng)
 
 @Composable
 fun FoodieFootprints(
-    navController: NavController
+    navController: NavHostController
 ) {
     val lastThreeUniqueIds = DataCollector.ids.distinct().takeLast(3)
     val matchingPlaces = MainActivity.placeList.filter { place -> lastThreeUniqueIds.contains(place.placeId.toString()) }
