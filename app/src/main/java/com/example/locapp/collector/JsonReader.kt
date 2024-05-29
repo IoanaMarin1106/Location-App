@@ -37,46 +37,11 @@ class JsonReader {
                 gson.fromJson(jsonString, Place::class.java)
             } catch (e: Exception) {
                 e.printStackTrace()
-                null // Handle parsing exceptions (optional)
-            }
-
-            if (place != null) {
-                // Use the parsed Place object
-                println("Place ID: ${place.placeId}")
-                println("Name: ${place.name}")
-                // ... and so on
-            } else {
-                // Handle parsing errors (optional)
-                println("Error parsing JSON!")
+                null
             }
 
             return place
         }
 
-        fun readFoodieFootprints(): List<String> {
-            val ids = mutableListOf<String>()
-            var reader: BufferedReader? = null
-
-            try {
-                reader = BufferedReader(FileReader(MainActivity.locationDataFilePath))
-                var line: String?
-
-                while (reader.readLine().also { line = it } != null) {
-                    println(line)
-                    ids.add(line!!.split(',')[4])
-                }
-            } catch (e: Exception) {
-                println("An error occurred: ${e.message}")
-            } finally {
-                try {
-                    reader?.close()
-                } catch (e: Exception) {
-                    println("An error occurred while closing the file: ${e.message}")
-                }
-            }
-
-            Log.d("TAG", ids[0])
-            return ids
-        }
     }
 }

@@ -1,10 +1,15 @@
 package com.example.locapp.tflite
 
-import android.os.Environment
 import android.util.Log
 import com.example.locapp.MainActivity
 import com.example.locapp.collector.DataCollector
+import com.example.locapp.room.entity.Location
+import com.example.locapp.room.repository.Repository
 import com.example.locapp.utils.Utils
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.tensorflow.lite.Interpreter
 import java.io.File
 import java.nio.ByteBuffer
@@ -12,16 +17,19 @@ import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import javax.inject.Inject
 
-class TFLiteModelManager {
+class TFLiteModelManager @Inject constructor(
+    private val repository: Repository,
+) {
 
     private val utils: Utils = Utils()
     private val TAG = "TFLiteModelManager"
     private var interpreter: Interpreter
 
     companion object {
-        const val NUMBER_OF_FEATURES = 2
-        const val NUMBER_OF_KNOWN_PLACES = 3426
+        const val NUMBER_OF_FEATURES = 3
+        const val NUMBER_OF_KNOWN_PLACES = 3159
 
 
         const val INFER = "infer"
@@ -45,9 +53,6 @@ class TFLiteModelManager {
     }
     fun trainModel(): Float {
         val (features, labels) = getDataForTraining()
-
-        // remove places file
-        File(DataCollector.placesFilePath).delete();
 
         var lastLoss = 0f
 
@@ -111,11 +116,12 @@ class TFLiteModelManager {
         return outputs.isNotEmpty()
     }
 
-    fun predict(day: Int, hour: Int): Map<Int, Float> {
+    fun predict(day: Int, hour: Int, rating: Int = 5): Map<Int, Float> {
         val features = ByteBuffer.allocateDirect(NUMBER_OF_FEATURES * Float.SIZE_BYTES).order(ByteOrder.nativeOrder())
         features.apply {
             putFloat(day.toFloat())
             putFloat(hour.toFloat())
+            putFloat(rating.toFloat())
         }
         features.rewind()
 
@@ -140,19 +146,24 @@ class TFLiteModelManager {
         return probabilitiesMap
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     private fun getDataForTraining(): Pair<MutableList<FloatArray>, MutableList<FloatArray>> {
         val features = mutableListOf<FloatArray>()
         val labels = mutableListOf<FloatArray>()
 
-        val placesFilePath = Environment.getExternalStorageDirectory().path + "/Download/LocationData/locations.txt"
-        val content = File(placesFilePath).readLines()
+        var locations = emptyList<Location>()
 
-        content.forEach {
-            val data = it.split(',')
-            features.add(floatArrayOf(data[2].toFloat(), data[3].toFloat()))
+        runBlocking {
+            GlobalScope.launch {
+                locations = repository.getLocationsForTraining()
+            }
+        }
+
+        locations.forEach {
+            features.add(floatArrayOf(it.hour.toFloat(), it.day.toFloat()))
 
             val placeLabel = FloatArray(NUMBER_OF_KNOWN_PLACES) {0f}
-            placeLabel[data[4].toInt()] = 1f
+            placeLabel[it.place_id] = 1f
             labels.add(placeLabel)
         }
 
@@ -164,19 +175,19 @@ class TFLiteModelManager {
 
     private fun generateFakeDataForTraining(): Pair<MutableList<FloatArray>, MutableList<FloatArray>> {
         val features = mutableListOf(
-            floatArrayOf(40.78636129f, -72.95981346f, 3.0f, 13.0f),
-            floatArrayOf(41.78382549f, -72.96214703f, 2.0f, 15.0f),
-            floatArrayOf(40.75249644f, -72.92982953f, 1.0f, 12.0f),
-            floatArrayOf(40.72249953f, -73.98478486f, 4.0f, 21.0f)
+            floatArrayOf(3.0f, 13.0f, 5.0f),
+            floatArrayOf(2.0f, 15.0f, 4.0f),
+            floatArrayOf(1.0f, 12.0f, 5.0f),
+            floatArrayOf(4.0f, 21.0f, 4.0f)
         )
 
-        val fb1 = FloatArray(3426) {0f}
+        val fb1 = FloatArray(NUMBER_OF_KNOWN_PLACES) {0f}
         fb1[3] = 1f
-        val fb2 = FloatArray(3426) {0f}
+        val fb2 = FloatArray(NUMBER_OF_KNOWN_PLACES) {0f}
         fb2[0] = 1f
-        val fb3 = FloatArray(3426) {0f}
+        val fb3 = FloatArray(NUMBER_OF_KNOWN_PLACES) {0f}
         fb3[65] = 1f
-        val fb4 = FloatArray(3426) {0f}
+        val fb4 = FloatArray(NUMBER_OF_KNOWN_PLACES) {0f}
         fb4[2] = 1f
         val labels = mutableListOf(
             fb1,fb2,fb3,fb4

@@ -11,35 +11,46 @@ import android.content.pm.PackageManager
 import android.location.Location
 import android.os.IBinder
 import android.util.Log
+import androidx.activity.viewModels
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
+import com.example.locapp.MainActivity
 import com.example.locapp.collector.DataCollector
 import com.example.locapp.receiver.RestartBackgroundService
+import com.example.locapp.room.repository.Repository
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
+import dagger.hilt.android.AndroidEntryPoint
 import java.io.File
 import java.time.LocalDateTime
 import java.util.Timer
 import java.util.TimerTask
+import javax.inject.Inject
+import kotlin.concurrent.thread
 
-
+@AndroidEntryPoint
 class LocationService: Service() {
     var counter = 0
     var latitude: Double = 0.0
     var longitude: Double = 0.0
+
+    @Inject
+    lateinit var repository: Repository
 
     private var timer: Timer? = null
     private var timerTask: TimerTask? = null
 
     private val TAG = "LocationService"
 
-    private val dataCollector: DataCollector = DataCollector()
+    val dataCollector by lazy {
+        DataCollector(repository = repository)
+    }
 
     override fun onCreate() {
         super.onCreate()
@@ -142,11 +153,8 @@ class LocationService: Service() {
 
                         Log.d(TAG, "location update $location")
 
-                        // check locations file
-                        if (!File(DataCollector.placesFilePath).exists())
-                            dataCollector.refreshLastLocation()
-
                         // collect location data
+
                         dataCollector.storeLocationData(baseContext, latitude, longitude, LocalDateTime.now())
                     }
                 }

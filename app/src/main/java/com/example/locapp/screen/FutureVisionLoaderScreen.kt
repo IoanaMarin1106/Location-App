@@ -43,9 +43,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.example.locapp.R
+import com.example.locapp.viewmodel.FoodieFootprintViewModel
 import com.example.locapp.viewmodel.PredictionsSharedViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -65,13 +68,13 @@ fun progressFlow(targetProgress: Float = 1f, step: Float = 0.007f, delayTime: Lo
 @Composable
 fun FutureVisionLoaderScreen(
     navController: NavHostController,
-    predictionsSharedViewModel: PredictionsSharedViewModel = PredictionsSharedViewModel()
 ) {
     val progressFlow = remember { progressFlow(delayTime = 10L) }
     val progressState = progressFlow.collectAsState(initial = 0f)
     var showCompletionText by remember { mutableStateOf(false) }
 
-    val predictions by predictionsSharedViewModel.predictionsState.collectAsState()
+    val predictionsSharedViewModel = hiltViewModel<PredictionsSharedViewModel>()
+    val predictions by predictionsSharedViewModel.predictionsState.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
         progressFlow.collect { value ->
@@ -125,7 +128,9 @@ fun FutureVisionLoaderScreen(
                     .padding(horizontal = 24.dp, vertical = 24.dp)
                     .clickable(
                         onClick = {
-                            val places = predictions.predictions.map { it.first }.toIntArray()
+                            val places = predictions.predictions
+                                .map { it.first }
+                                .toIntArray()
                             val placeIds = places.joinToString(",")
                             navController.navigate("forthcoming_favorites_screen/${placeIds}")
                         }

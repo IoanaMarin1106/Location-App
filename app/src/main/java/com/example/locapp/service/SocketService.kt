@@ -13,8 +13,10 @@ import android.view.Gravity
 import android.widget.Toast
 import com.example.locapp.MainActivity
 import com.example.locapp.downloader.AndroidDownloader
+import com.example.locapp.room.repository.Repository
 import com.example.locapp.tflite.TFLiteModelManager
 import com.example.locapp.utils.Utils
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -28,13 +30,19 @@ import java.io.IOException
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import javax.inject.Inject
 
 
+@AndroidEntryPoint
 class SocketService: Service() {
     private val socketManager = SocketManager()
     private val utils = Utils()
+
+    @Inject
+    lateinit var repository: Repository
+
     private val modelManager: TFLiteModelManager by lazy {
-        TFLiteModelManager()
+        TFLiteModelManager(repository = repository)
     }
 
     private val okHttpClient = OkHttpClient()

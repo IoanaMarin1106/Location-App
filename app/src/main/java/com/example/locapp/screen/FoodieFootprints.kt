@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -23,6 +24,9 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -39,7 +43,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.locapp.MainActivity
 import com.example.locapp.R
-import com.example.locapp.collector.DataCollector
+import com.example.locapp.collector.LocationInfo
+import com.example.locapp.viewmodel.FoodieFootprintViewModel
 import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
@@ -49,27 +54,45 @@ import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
-data class LocationInfo(val name: String, val latLong: LatLng)
 
 @Composable
 fun FoodieFootprints(
     navController: NavHostController
 ) {
-    val lastThreeUniqueIds = DataCollector.ids.distinct().takeLast(3)
-    val matchingPlaces = MainActivity.placeList.filter { place -> lastThreeUniqueIds.contains(place.placeId.toString()) }
+    val footprintViewModel = hiltViewModel<FoodieFootprintViewModel>()
+
+    LaunchedEffect(key1 = true, block = {
+        footprintViewModel.getLocationsDetails()
+    })
+
+    val locations by footprintViewModel.locationsList.collectAsStateWithLifecycle()
+
+    Log.d("TEST", locations.joinToString(","))
+
+    val matchingPlaces = MainActivity.placeList.filter { place -> locations.contains(place.placeId) }
 
     val locationsList = matchingPlaces.map {
         LocationInfo(it.name, LatLng((it.nLatitude + it.sLatitude) / 2, (it.wLongitude + it.eLongitude) / 2))
     }.toMutableList()
 
-    val cameraPositionState: CameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(locationsList[0].latLong, 11f)
+    val cameraPositionState: CameraPositionState = if (locationsList.isNotEmpty()) {
+        rememberCameraPositionState {
+            position = CameraPosition.fromLatLngZoom(locationsList[0].latLong, 11f)
+        }
+    } else {
+        rememberCameraPositionState {
+            position = CameraPosition.fromLatLngZoom(LatLng(44.0, 28.0), 11f)
+        }
     }
+
 
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
+
         Text(
             modifier = Modifier.padding(24.dp),
             text = "Let's see your last week resolutions...",
@@ -159,7 +182,9 @@ fun FoodieFootprints(
                     colors = ButtonDefaults.buttonColors(
                         containerColor = colorResource(id = R.color.colorBackgroundDark)
                     ),
-                    onClick = { navController.navigate(ScreenHolder.FutureVisionLoader.route) }
+                    onClick = {
+                        navController.navigate(ScreenHolder.FutureVisionLoader.route)
+                    }
                 ) {
                     Text("START")
                 }

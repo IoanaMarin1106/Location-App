@@ -8,22 +8,28 @@ import android.os.Environment
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import androidx.room.Room
 import com.example.locapp.collector.JsonReader
 import com.example.locapp.collector.Place
 import com.example.locapp.downloader.DownloadReceiver
+import com.example.locapp.room.datasource.RoomDatabase
 import com.example.locapp.screen.SetUpNavGraph
 import com.example.locapp.service.LocationService
 import com.example.locapp.service.SocketService
 import com.example.locapp.ui.theme.LocAppTheme
 import com.example.locapp.utils.Utils
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     private val utils: Utils = Utils()
@@ -35,8 +41,10 @@ class MainActivity : ComponentActivity() {
 
         val checkpointsDirectoryPath = Environment.getExternalStorageDirectory().path + "/Download/Checkpoints"
         val modelDirectory = Environment.getExternalStorageDirectory().path + "/Download/Model"
-        val locationDataFilePath = Environment.getExternalStorageDirectory().path + "/Download/LocationData/locations.txt"
+
         lateinit var placeList: List<Place>
+        lateinit var database: RoomDatabase
+
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)
@@ -56,10 +64,19 @@ class MainActivity : ComponentActivity() {
                 Manifest.permission.ACCESS_BACKGROUND_LOCATION,
                 Manifest.permission.INTERNET,
                 Manifest.permission.READ_EXTERNAL_STORAGE,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE
+                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                Manifest.permission.POST_NOTIFICATIONS
             )
         )
         Log.d(TAG, "Permission has been added successfully")
+
+        // create database
+        Log.d(TAG, "Start database creation...")
+        database = Room.databaseBuilder(
+                applicationContext,
+                RoomDatabase::class.java,
+                "locations_database"
+            ).fallbackToDestructiveMigration().build()
 
         // create checkpoints directory & model if not exist
         var result = utils.createDirectoryIfNotExists(checkpointsDirectoryPath)
@@ -67,6 +84,7 @@ class MainActivity : ComponentActivity() {
 
         result = utils.createDirectoryIfNotExists(modelDirectory)
         Log.d(TAG, "Model directory creation result: $result")
+
 
         // ---------------------  APPLICATION UI ------------------------------------
         setContent {
@@ -79,9 +97,9 @@ class MainActivity : ComponentActivity() {
                     navController = rememberNavController()
                     SetUpNavGraph(navController = navController)
 
-//                    LocalContext.current.apply {
-//                        startService(Intent(LocalContext.current, SocketService::class.java))
-//                    }
+                    LocalContext.current.apply {
+                        startService(Intent(LocalContext.current, SocketService::class.java))
+                    }
                 }
             }
         }

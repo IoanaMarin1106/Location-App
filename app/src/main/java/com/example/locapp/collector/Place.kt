@@ -7,6 +7,8 @@ data class Place(
     val placeId: Int,
     @SerializedName("name")
     val name: String,
+    @SerializedName("rating")
+    val rating: Int,
     @SerializedName("s_latitude")
     val sLatitude: Double,
     @SerializedName("n_latitude")
