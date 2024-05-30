@@ -11,14 +11,15 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FabPosition
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -32,10 +33,8 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.example.locapp.MainActivity
 import com.example.locapp.R
 import com.example.locapp.collector.LocationInfo
@@ -50,69 +49,78 @@ fun ForthcomingFavoritesScreen(
     navController: NavHostController,
     placeIds: IntArray,
 ) {
-    val locationsList = MainActivity.placeList.filter {
-        placeIds.contains(it.placeId)
-    }.map {
-        LocationInfo(it.name, LatLng((it.nLatitude + it.sLatitude) / 2, (it.wLongitude + it.eLongitude) / 2))
-    }.toMutableList()
+    Scaffold(
+        floatingActionButton = {
+            NotificationFab(navController = navController)
+        },
+        floatingActionButtonPosition = FabPosition.Center
+    ) { padding ->
+        val locationsList = MainActivity.placeList.filter {
+            placeIds.contains(it.placeId)
+        }.map {
+            LocationInfo(it.name, LatLng((it.nLatitude + it.sLatitude) / 2, (it.wLongitude + it.eLongitude) / 2))
+        }.toMutableList()
 
-    val cameraPositionState: CameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(locationsList[0].latLong, 11f)
-    }
+        val cameraPositionState: CameraPositionState = rememberCameraPositionState {
+            position = CameraPosition.fromLatLngZoom(locationsList[0].latLong, 11f)
+        }
 
-    Column(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        // Map composable
-        Box(
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(400.dp)
+                .fillMaxSize()
+                .padding(padding)
         ) {
-            GoogleMap(
-                cameraPositionState = cameraPositionState,
-                modifier = Modifier.fillMaxWidth()
+            // Map composable
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(400.dp)
             ) {
-                locationsList.forEach { location ->
-                    MapMarker(
-                        context = LocalContext.current,
-                        position = location.latLong,
-                        title = location.name,
-                        iconSourceId = R.drawable.pin
-                    )
+                GoogleMap(
+                    cameraPositionState = cameraPositionState,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    locationsList.forEach { location ->
+                        MapMarker(
+                            context = LocalContext.current,
+                            position = location.latLong,
+                            title = location.name,
+                            iconSourceId = R.drawable.pin
+                        )
+                    }
                 }
             }
-        }
 
-        Spacer(modifier = Modifier
-            .fillMaxWidth()
-            .padding(6.dp))
-
-        // Card with list
-        Card(
-            modifier = Modifier
+            Spacer(modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = colorResource(id = R.color.colorSecondary)
-            )
-        ) {
-            LocationList(locationsList = locationsList)
-        }
+                .padding(6.dp))
 
-        Button(
-            modifier = Modifier
-                .padding(16.dp)
-                .align(CenterHorizontally),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = colorResource(id = R.color.colorBackgroundDark)
-            ),
-            onClick = { navController.navigate(ScreenHolder.FoodieFootprints.route) {
+            // Card with list
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = colorResource(id = R.color.colorSecondary)
+                )
+            ) {
+                LocationList(locationsList = locationsList)
+            }
+
+            Button(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .align(CenterHorizontally),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = colorResource(id = R.color.colorBackgroundDark)
+                ),
+                onClick = { navController.navigate(ScreenHolder.FoodieFootprints.route) {
                     popUpTo(ScreenHolder.FoodieFootprints.route)
                 }
+                }
+            ) {
+                Text("Go Home")
             }
-        ) {
-            Text("Go Home")
         }
     }
 }

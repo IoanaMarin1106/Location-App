@@ -21,6 +21,12 @@ interface LocationDao {
     @Query("SELECT DISTINCT place_id FROM locations ORDER BY id DESC LIMIT 3")
     fun getLastThreeEntries(): Flow<List<Int>>
 
-//    @Query("UPDATE locations SET rating = :locationRating WHERE place_id = :placeId")
-//    suspend fun updateRating(locationRating: Int, placeId: Int)
+    @Query("SELECT * FROM locations WHERE has_notification ORDER BY id DESC")
+    fun getLocationsWithInProgressReview(): Flow<List<Location>>
+
+    @Query("SELECT COUNT(1) FROM locations WHERE has_notification")
+    fun getNumberOfNotifications(): Flow<Int>
+
+    @Query("UPDATE locations SET rating = :locationRating, reviewed = 1, has_notification = 0 WHERE id = :id")
+    suspend fun updateRating(locationRating: Int, id: Long)
 }

@@ -1,12 +1,11 @@
 package com.example.locapp.room.repository
 
-import com.example.locapp.room.entity.Location
 import com.example.locapp.room.datasource.LocationDao
-import kotlinx.coroutines.currentCoroutineContext
+import com.example.locapp.room.entity.Location
+import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
-import kotlinx.coroutines.Dispatchers.IO
 
 interface Repository {
 
@@ -17,6 +16,10 @@ interface Repository {
     suspend fun getLastThreeLocations() : Flow<List<Int>>
 
     suspend fun getLocationsForTraining(): List<Location>
+
+    suspend fun getLocationsWIthInProgressReview(): Flow<List<Location>>
+
+    suspend fun getNotificationsCount(): Flow<Int>
 }
 
 class RepositoryImpl @Inject constructor(
@@ -40,9 +43,21 @@ class RepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun getLocationsWIthInProgressReview(): Flow<List<Location>> {
+        return withContext(IO) {
+            dao.getLocationsWithInProgressReview()
+        }
+    }
+
     override suspend fun getLastLocation(): List<Location> {
         return withContext(IO) {
             dao.getLastLocation()
+        }
+    }
+
+    override suspend fun getNotificationsCount(): Flow<Int> {
+        return withContext(IO) {
+            dao.getNumberOfNotifications()
         }
     }
 }

@@ -11,7 +11,10 @@ data class Location(
     var day: Int = 0,
     var place_id: Int = 0,
     var rating: Int = 0,
-    var used_for_training: Boolean = false
+    var used_for_training: Boolean = false,
+    var reviewed: Boolean = false,
+    var has_notification: Boolean = false,
+    var timestamp: Long = System.currentTimeMillis()
 ) {
     @PrimaryKey(autoGenerate = true)
     var id: Long = 0

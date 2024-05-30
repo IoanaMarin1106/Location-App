@@ -1,7 +1,5 @@
 package com.example.locapp.screen
 
-import android.os.Bundle
-import android.util.Log
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
@@ -16,7 +14,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FabPosition
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -45,10 +45,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.example.locapp.R
-import com.example.locapp.viewmodel.FoodieFootprintViewModel
 import com.example.locapp.viewmodel.PredictionsSharedViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -69,86 +67,97 @@ fun progressFlow(targetProgress: Float = 1f, step: Float = 0.007f, delayTime: Lo
 fun FutureVisionLoaderScreen(
     navController: NavHostController,
 ) {
-    val progressFlow = remember { progressFlow(delayTime = 10L) }
-    val progressState = progressFlow.collectAsState(initial = 0f)
-    var showCompletionText by remember { mutableStateOf(false) }
+    Scaffold(
+        floatingActionButton = {
+            NotificationFab(navController = navController)
+        },
+        floatingActionButtonPosition = FabPosition.Center
+    ) { padding ->
+        val progressFlow = remember { progressFlow(delayTime = 10L) }
+        val progressState = progressFlow.collectAsState(initial = 0f)
+        var showCompletionText by remember { mutableStateOf(false) }
 
-    val predictionsSharedViewModel = hiltViewModel<PredictionsSharedViewModel>()
-    val predictions by predictionsSharedViewModel.predictionsState.collectAsStateWithLifecycle()
+        val predictionsSharedViewModel = hiltViewModel<PredictionsSharedViewModel>()
+        val predictions by predictionsSharedViewModel.predictionsState.collectAsStateWithLifecycle()
 
-    LaunchedEffect(Unit) {
-        progressFlow.collect { value ->
-            if (value >= 0.99f) {
-                delay(350)
-                showCompletionText = true
+        LaunchedEffect(Unit) {
+            progressFlow.collect { value ->
+                if (value >= 0.99f) {
+                    delay(350)
+                    showCompletionText = true
+                }
             }
         }
-    }
 
-    Column {
-        if (!showCompletionText) {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.Center
-            ) {
-                Card(modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 24.dp)
-                    .clickable(
-                        onClick = { navController.navigate(ScreenHolder.ForthcomingFavorites.route) }
-                    ),
-                    colors = CardDefaults.cardColors(
-                        containerColor = colorResource(id = R.color.colorSecondary)
-                    ))
-                {
-                    Text(
-                        text = stringResource(id = R.string.future_vision_loader_prediction_waiting_message),
-                        textAlign = TextAlign.Center,
-                        fontSize = MaterialTheme.typography.headlineSmall.fontSize,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.padding(32.dp),
-                        color = Color.White
-                    )
-                }
+        Column {
+            if (!showCompletionText) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding),
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Card(modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp, vertical = 24.dp)
+                        .clickable(
+                            onClick = { navController.navigate(ScreenHolder.ForthcomingFavorites.route) }
+                        ),
+                        colors = CardDefaults.cardColors(
+                            containerColor = colorResource(id = R.color.colorSecondary)
+                        ))
+                    {
+                        Text(
+                            text = stringResource(id = R.string.future_vision_loader_prediction_waiting_message),
+                            textAlign = TextAlign.Center,
+                            fontSize = MaterialTheme.typography.headlineSmall.fontSize,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.padding(32.dp),
+                            color = Color.White
+                        )
+                    }
 
-                Box (modifier = Modifier.align(Alignment.CenterHorizontally)) {
-                    CustomerCircularProgressBar(
-                        progress = progressState.value,
-                        progressArcColor1 = colorResource(id = R.color.colorSecondary),
-                        progressArcColor2 = colorResource(id = R.color.colorSecondaryDark)
+                    Box (modifier = Modifier.align(Alignment.CenterHorizontally)) {
+                        CustomerCircularProgressBar(
+                            progress = progressState.value,
+                            progressArcColor1 = colorResource(id = R.color.colorSecondary),
+                            progressArcColor2 = colorResource(id = R.color.colorSecondaryDark)
+                        )
+                    }
+                }
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding),
+                ) {
+                    Card(modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp, vertical = 24.dp)
+                        .clickable(
+                            onClick = {
+                                val places = predictions.predictions
+                                    .map { it.first }
+                                    .toIntArray()
+                                val placeIds = places.joinToString(",")
+                                navController.navigate("forthcoming_favorites_screen/${placeIds}")
+                            }
+                        ))
+                    {
+                        Text(
+                            text = stringResource(id = R.string.future_vision_loader_message),
+                            textAlign = TextAlign.Center,
+                            fontSize = MaterialTheme.typography.headlineSmall.fontSize,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.padding(32.dp),
+                        )
+                    }
+                    Image(
+                        painter = painterResource(id = R.drawable.globe),
+                        contentDescription = "prediction",
+                        modifier = Modifier.size(500.dp)
                     )
                 }
-            }
-        } else {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-            ) {
-                Card(modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 24.dp)
-                    .clickable(
-                        onClick = {
-                            val places = predictions.predictions
-                                .map { it.first }
-                                .toIntArray()
-                            val placeIds = places.joinToString(",")
-                            navController.navigate("forthcoming_favorites_screen/${placeIds}")
-                        }
-                    ))
-                {
-                    Text(
-                        text = stringResource(id = R.string.future_vision_loader_message),
-                        textAlign = TextAlign.Center,
-                        fontSize = MaterialTheme.typography.headlineSmall.fontSize,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.padding(32.dp),
-                    )
-                }
-                Image(
-                    painter = painterResource(id = R.drawable.globe),
-                    contentDescription = "prediction",
-                    modifier = Modifier.size(500.dp)
-                )
             }
         }
     }

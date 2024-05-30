@@ -2,24 +2,18 @@ package com.example.locapp.screen
 
 import android.content.Context
 import android.content.Intent
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.FabPosition
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableDoubleStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -39,45 +33,53 @@ fun HomeScreen(
     context: Context,
     navController: NavHostController
 ) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        // Add the background image
-        Image(
-            painter = painterResource(id = R.drawable.home_map),
-            contentDescription = "Background image"
-        )
-
-        Text(
-            modifier = Modifier
-                .padding(36.dp),
-            textAlign = TextAlign.Center,
-            text = "Let's Put You on the Map! (Literally)",
-            color = colorResource(id = R.color.colorSecondary),
-            fontSize = MaterialTheme.typography.headlineSmall.fontSize,
-            fontWeight = FontWeight.Bold
-        )
-
-        Button(
-            modifier = Modifier
-                .padding(4.dp)
-                .align(Alignment.CenterHorizontally),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = colorResource(id = R.color.colorSecondaryDark)
-            ),
-            onClick = {
-                // starting the service
-                context.startService(Intent(context, LocationService::class.java))
-
-                // navigate to the second screen when at least 3 locations were collected
-                navController.navigate(route = ScreenHolder.FoodieFootprints.route)
-            }
+    Scaffold(
+        floatingActionButton = {
+            NotificationFab(navController = navController)
+        },
+        floatingActionButtonPosition = FabPosition.Center
+    ) { padding ->
+        Column(
+            modifier = Modifier.fillMaxSize().padding(padding),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Engage Location Tracking Protocol")
+            // Add the background image
+            Image(
+                painter = painterResource(id = R.drawable.home_map),
+                contentDescription = "Background image"
+            )
+
+            Text(
+                modifier = Modifier
+                    .padding(36.dp),
+                textAlign = TextAlign.Center,
+                text = "Let's Put You on the Map! (Literally)",
+                color = colorResource(id = R.color.colorSecondary),
+                fontSize = MaterialTheme.typography.headlineSmall.fontSize,
+                fontWeight = FontWeight.Bold
+            )
+
+            Button(
+                modifier = Modifier
+                    .padding(4.dp)
+                    .align(Alignment.CenterHorizontally),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = colorResource(id = R.color.colorSecondaryDark)
+                ),
+                onClick = {
+                    // starting the service
+                    context.startService(Intent(context, LocationService::class.java))
+
+                    // navigate to the second screen when at least 3 locations were collected
+                    navController.navigate(route = ScreenHolder.FoodieFootprints.route)
+                }
+            ) {
+                Text("Engage Location Tracking Protocol")
+            }
         }
     }
+
 }
 
 @Composable

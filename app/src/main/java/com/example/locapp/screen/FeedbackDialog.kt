@@ -16,15 +16,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 
 
 @Composable
-fun AlertDialogExample(
+fun FeedbackDialog(
     onDismissRequest: () -> Unit,
     onConfirmation: (Any?) -> Unit,
     dialogTitle: String,
-    dialogText: String,
+    dialogText: AnnotatedString,
     icon: ImageVector,
 ) {
     var rating  by remember {

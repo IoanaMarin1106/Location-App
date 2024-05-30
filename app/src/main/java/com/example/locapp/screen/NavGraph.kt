@@ -35,5 +35,6 @@ fun SetUpNavGraph(
         ) {
             FutureVisionLoaderScreen(navController = navController, )
         }
+        composable(route = ScreenHolder.LocationReviewsScreen.route) { LocationReviewsScreen(navController = navController) }
     }
 }
