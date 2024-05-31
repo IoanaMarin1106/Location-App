@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface LocationDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertLocation(location: Location)
+    fun insertLocation(location: Location)
 
     @Query("SELECT * FROM locations ORDER BY id DESC LIMIT 1")
     fun getLastLocation(): List<Location>
@@ -29,4 +29,7 @@ interface LocationDao {
 
     @Query("UPDATE locations SET rating = :locationRating, reviewed = 1, has_notification = 0, used_for_training = 0 WHERE id = :id")
     suspend fun updateRating(locationRating: Int, id: Long)
+
+    @Query("UPDATE locations SET has_notification = 1 where id = :id")
+    suspend fun updateNotificationIndicator(id: Long)
 }

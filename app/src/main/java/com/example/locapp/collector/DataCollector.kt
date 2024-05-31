@@ -41,20 +41,15 @@ class DataCollector @Inject constructor(
 
                 if (placeId != lastLoc?.place_id || (hour != lastLoc.hour || dayOfWeek != lastLoc.day)) {
                     // insert current location into the database
-                    MainActivity.database.locationDao().insertLocation(
-                        Location(
-                            latitude,
-                            longitude,
-                            hour,
-                            dayOfWeek,
-                            placeId,
-                            rating
-                        )
-                    )
+                    repository.insert(Location(latitude, longitude, hour, dayOfWeek, placeId, rating))
 
-                    // TODO: update has_notification = 1 for previous location
+                    // mark last location in the database that we need to send a notification for it
+                    if (lastLoc != null) {
+                        repository.updateNotificationIndicator(lastLoc.id)
 
-                    Notifier().inviteToReview(context) // TODO: add previous location as parameter
+                        val lastLocName = MainActivity.placeList.filter { (placeId) -> lastLoc.place_id ==  placeId }[0].name
+                        Notifier().inviteToReview(context, lastLocName)
+                    }
                 }
             }
         }

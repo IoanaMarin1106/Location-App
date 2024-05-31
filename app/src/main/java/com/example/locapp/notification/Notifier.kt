@@ -14,9 +14,9 @@ import com.example.locapp.MainActivity
 
 class Notifier {
 
-    fun inviteToReview(context: Context) {
+    fun inviteToReview(context: Context, locationName: String) {
         createNotificationChannel(context)
-        sendReviewNotification(context)
+        sendReviewNotification(context, locationName)
     }
 
     private fun createNotificationChannel(context: Context) {
@@ -31,8 +31,7 @@ class Notifier {
         notificationManager.createNotificationChannel(channel)
     }
 
-    // TODO: Refactor the style of the notification
-    private fun sendReviewNotification(context: Context) {
+    private fun sendReviewNotification(context: Context, locationName: String) {
         val intent = Intent(context, MainActivity::class.java).apply {
             putExtra("navigateToLocationReviews", true)
         }
@@ -40,8 +39,8 @@ class Notifier {
 
         val builder = NotificationCompat.Builder(context, "review_channel_id")
             .setSmallIcon(android.R.drawable.ic_popup_reminder)
-            .setContentTitle("Review Invitation")
-            .setContentText("We invite you to review the location.")
+            .setContentTitle("Dish the Dish!")
+            .setContentText("Rate your last bite at ${locationName}!")
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)

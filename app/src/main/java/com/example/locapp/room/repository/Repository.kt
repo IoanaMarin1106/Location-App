@@ -20,6 +20,8 @@ interface Repository {
     suspend fun getLocationsWIthInProgressReview(): Flow<List<Location>>
 
     suspend fun getNotificationsCount(): Flow<Int>
+
+    suspend fun updateNotificationIndicator(id: Long)
 }
 
 class RepositoryImpl @Inject constructor(
@@ -58,6 +60,12 @@ class RepositoryImpl @Inject constructor(
     override suspend fun getNotificationsCount(): Flow<Int> {
         return withContext(IO) {
             dao.getNumberOfNotifications()
+        }
+    }
+
+    override suspend fun updateNotificationIndicator(id: Long) {
+        return withContext(IO) {
+            dao.updateNotificationIndicator(id)
         }
     }
 }

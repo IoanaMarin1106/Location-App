@@ -1,6 +1,8 @@
 package com.example.locapp.screen
 
+import android.util.Log
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Star
@@ -20,7 +21,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -34,8 +34,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -64,49 +66,68 @@ import java.util.Locale
 fun LocationReviewsScreen(
     navController: NavHostController,
 ) {
+    val locationReviewsViewModel = hiltViewModel<LocationReviewsViewModel>()
+
+    LaunchedEffect(key1 = true, block = {
+        locationReviewsViewModel.getLocationsForReview()
+    })
+
+    val locations by locationReviewsViewModel.locationsList.collectAsStateWithLifecycle()
+    Log.d("HEHE", locations.isEmpty().toString())
+
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Location Reviews", style = MaterialTheme.typography.titleLarge) })
+            TopAppBar(title = {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (locations.isNotEmpty()) {
+                        Text(
+                            text = "Location Reviews",
+                            style = MaterialTheme.typography.titleLarge
+                        )
+                    }
+                }
+            })
         },
         floatingActionButton = {
             BackFab(navController = navController)
         },
         floatingActionButtonPosition = FabPosition.Center
     ) { padding ->
-        val locationReviewsViewModel = hiltViewModel<LocationReviewsViewModel>()
-
-        LaunchedEffect(key1 = true, block = {
-            locationReviewsViewModel.getLocationsForReview()
-        })
-
-        val locations by locationReviewsViewModel.locationsList.collectAsStateWithLifecycle()
-
-        Column(modifier = Modifier.padding(padding)) {
-            locations.forEach { location ->
-                LocationReviewItem(location = location)
+        if (locations.isEmpty()) {
+            Column(modifier = Modifier
+                .padding(padding)
+                .fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    "No review needed",
+                    style = MaterialTheme.typography.titleLarge
+                )
+                Icon(
+                    imageVector = ImageVector.vectorResource(id = R.drawable.checkmark),
+                    contentDescription = "Leave a Review",
+                    tint = colorResource(id = R.color.colorSecondary),
+                    modifier = Modifier.size(200.dp)
+                )
             }
-        }
-    }
-}
-
-@Composable
-fun BackFab(navController: NavController) {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomStart) {
-        FloatingActionButton(
-            containerColor = colorResource(id = R.color.colorSecondary),
-            modifier = Modifier
-                .padding(16.dp)
-                .size(56.dp),
-            onClick = { navController.navigateUp() },
-        ) {
-            Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+        } else {
+            Column(modifier = Modifier.padding(padding)) {
+                locations.forEach { location ->
+                    LocationReviewItem(location = location, locationReviewsViewModel)
+                }
+            }
         }
     }
 }
 
 @OptIn(DelicateCoroutinesApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun LocationReviewItem(location: Location) {
+fun LocationReviewItem(location: Location, locationReviewsViewModel: LocationReviewsViewModel) {
     val place = MainActivity.placeList.firstOrNull { it.placeId == location.place_id }
 
     var isFeedbackDialogDisplayed by remember {
@@ -127,8 +148,7 @@ fun LocationReviewItem(location: Location) {
             onDismissRequest = { isFeedbackDialogDisplayed = false },
             onConfirmation = { rating ->
                 GlobalScope.launch {
-                    MainActivity.database.locationDao()
-                        .updateRating((rating as Double).toInt(), location.id)
+                    locationReviewsViewModel.updateRatingAndRemoveLocation((rating as Double).toInt(), location)
                     isFeedbackDialogDisplayed = false
                 }
             },
@@ -173,20 +193,20 @@ fun LocationReviewItem(location: Location) {
 
             // Review invitation
             Column(
-                horizontalAlignment = Alignment.End,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
                 modifier = Modifier.padding(start = 16.dp)
             ) {
-                IconButton(onClick = { /* Handle click action */ }) {
+
                     Icon(
-                        imageVector = Icons.Default.Star,
+                        imageVector = ImageVector.vectorResource(id = R.drawable.star_empty_svgrepo_com),
                         contentDescription = "Leave a Review",
                         tint = Color.Yellow,
                         modifier = Modifier.size(40.dp)
                     )
-                }
-                ClickableText(
+
+                Text(
                     text = AnnotatedString("Leave a Review"),
-                    onClick = { /* Handle click action */ },
                     style = MaterialTheme.typography.bodyMedium.copy(color = colorResource(id = R.color.colorSecondary))
                 )
             }
@@ -194,13 +214,28 @@ fun LocationReviewItem(location: Location) {
     }
 }
 
-fun Long.toPrettyDateTime(): String {
-    val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
-    return sdf.format(Date(this))
+@Composable
+fun BackFab(navController: NavController) {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomStart) {
+        FloatingActionButton(
+            containerColor = colorResource(id = R.color.colorSecondary),
+            modifier = Modifier
+                .padding(16.dp)
+                .size(56.dp),
+            onClick = { navController.navigate(ScreenHolder.FoodieFootprints.route) },
+        ) {
+            Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+        }
+    }
 }
 
 @Composable
 @Preview(showBackground = true)
 fun LocationsReviewScreenPreview() {
     LocationReviewsScreen(navController = rememberNavController())
+}
+
+fun Long.toPrettyDateTime(): String {
+    val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+    return sdf.format(Date(this))
 }

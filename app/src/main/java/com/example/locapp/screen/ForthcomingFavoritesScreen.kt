@@ -134,6 +134,7 @@ fun LocationList(locationsList: MutableList<LocationInfo>) {
             .padding(16.dp)
             .height(200.dp)
             .verticalScroll(state = rememberScrollState())
+            .fillMaxWidth()
     ) {
         val displayedLocations = if (expanded) {
             locationsList
@@ -181,13 +182,3 @@ fun LocationList(locationsList: MutableList<LocationInfo>) {
         }
     }
 }
-
-
-//@Composable
-//@Preview(showBackground = true)
-//fun ForthcomingFavoritesPreview() {
-//    ForthcomingFavoritesScreen(
-//        navController = rememberNavController(),
-//
-//    )
-//}

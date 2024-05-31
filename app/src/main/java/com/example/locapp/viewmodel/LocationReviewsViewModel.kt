@@ -2,6 +2,7 @@ package com.example.locapp.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.locapp.MainActivity
 import com.example.locapp.room.entity.Location
 import com.example.locapp.room.repository.Repository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -26,5 +27,14 @@ class LocationReviewsViewModel @Inject constructor(
             }
         }
     }
+    fun updateRatingAndRemoveLocation(rating: Int, location: Location) {
+        viewModelScope.launch {
+            MainActivity.database.locationDao().updateRating(rating, location.id)
+            removeLocation(location)
+        }
+    }
 
+    private fun removeLocation(location: Location) {
+        _locationsList.value = _locationsList.value.filter { it.id != location.id }
+    }
 }
