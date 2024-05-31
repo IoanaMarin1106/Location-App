@@ -13,6 +13,7 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
@@ -22,6 +23,7 @@ import com.example.locapp.collector.JsonReader
 import com.example.locapp.collector.Place
 import com.example.locapp.downloader.DownloadReceiver
 import com.example.locapp.room.datasource.RoomDatabase
+import com.example.locapp.screen.ScreenHolder
 import com.example.locapp.screen.SetUpNavGraph
 import com.example.locapp.service.LocationService
 import com.example.locapp.service.SocketService
@@ -95,6 +97,13 @@ class MainActivity : ComponentActivity() {
                 ) {
                     // this allows the navigation between the application screens
                     navController = rememberNavController()
+
+                    LaunchedEffect(Unit) {
+                        if (intent?.getBooleanExtra("navigateToLocationReviews", false) == true) {
+                            navController.navigate(ScreenHolder.LocationReviewsScreen.route)
+                        }
+                    }
+
                     SetUpNavGraph(navController = navController)
 
                     LocalContext.current.apply {

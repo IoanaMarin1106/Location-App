@@ -27,6 +27,6 @@ interface LocationDao {
     @Query("SELECT COUNT(1) FROM locations WHERE has_notification")
     fun getNumberOfNotifications(): Flow<Int>
 
-    @Query("UPDATE locations SET rating = :locationRating, reviewed = 1, has_notification = 0 WHERE id = :id")
+    @Query("UPDATE locations SET rating = :locationRating, reviewed = 1, has_notification = 0, used_for_training = 0 WHERE id = :id")
     suspend fun updateRating(locationRating: Int, id: Long)
 }

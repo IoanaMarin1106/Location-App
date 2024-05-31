@@ -11,12 +11,10 @@ import android.content.pm.PackageManager
 import android.location.Location
 import android.os.IBinder
 import android.util.Log
-import androidx.activity.viewModels
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
-import com.example.locapp.MainActivity
 import com.example.locapp.collector.DataCollector
 import com.example.locapp.receiver.RestartBackgroundService
 import com.example.locapp.room.repository.Repository
@@ -27,12 +25,10 @@ import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import dagger.hilt.android.AndroidEntryPoint
-import java.io.File
 import java.time.LocalDateTime
 import java.util.Timer
 import java.util.TimerTask
 import javax.inject.Inject
-import kotlin.concurrent.thread
 
 @AndroidEntryPoint
 class LocationService: Service() {

@@ -1,25 +1,20 @@
 package com.example.locapp.collector
 
 import android.content.Context
-import android.os.Environment
 import android.util.Log
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.locapp.MainActivity
+import com.example.locapp.notification.Notifier
 import com.example.locapp.room.entity.Location
 import com.example.locapp.room.repository.Repository
 import com.google.gson.Gson
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import java.io.BufferedWriter
-import java.io.File
-import java.io.FileWriter
-import java.io.IOException
 import java.time.LocalDateTime
 import javax.inject.Inject
 
 class DataCollector @Inject constructor(
-    private val repository: Repository
+    private val repository: Repository,
 ) {
     private val TAG = "DATA COLLECTOR"
 
@@ -56,6 +51,10 @@ class DataCollector @Inject constructor(
                             rating
                         )
                     )
+
+                    // TODO: update has_notification = 1 for previous location
+
+                    Notifier().inviteToReview(context) // TODO: add previous location as parameter
                 }
             }
         }
