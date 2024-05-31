@@ -1,6 +1,6 @@
 package com.example.locapp.screen
 
-import android.util.Log
+import android.text.format.DateUtils
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -73,7 +74,6 @@ fun LocationReviewsScreen(
     })
 
     val locations by locationReviewsViewModel.locationsList.collectAsStateWithLifecycle()
-    Log.d("HEHE", locations.isEmpty().toString())
 
     Scaffold(
         topBar = {
@@ -163,6 +163,9 @@ fun LocationReviewItem(location: Location, locationReviewsViewModel: LocationRev
             .padding(8.dp)
             .fillMaxWidth(),
         elevation = CardDefaults.cardElevation(2.dp),
+//        colors = CardDefaults.cardColors(
+//            containerColor = colorResource(id = R.color.colorSecondary)
+//        ),
         onClick = {
             isFeedbackDialogDisplayed = true
         }
@@ -188,6 +191,14 @@ fun LocationReviewItem(location: Location, locationReviewsViewModel: LocationRev
                 if (place != null) {
                     Text(text = place.name, style = MaterialTheme.typography.titleLarge)
                     Text(text = location.timestamp.toPrettyDateTime(), style = MaterialTheme.typography.bodyMedium)
+                    Card (
+                        colors = CardDefaults.cardColors(
+                            containerColor = colorResource(id = R.color.colorSecondary)
+                        )
+                    ) {
+                        Text(modifier = Modifier.padding(4.dp), text = location.timestamp.getTimeAgo(), style = MaterialTheme.typography.bodyMedium, color = Color.White)
+                    }
+
                 }
             }
 
@@ -199,9 +210,9 @@ fun LocationReviewItem(location: Location, locationReviewsViewModel: LocationRev
             ) {
 
                     Icon(
-                        imageVector = ImageVector.vectorResource(id = R.drawable.star_empty_svgrepo_com),
+                        imageVector = Icons.Default.Notifications,
                         contentDescription = "Leave a Review",
-                        tint = Color.Yellow,
+                        tint = colorResource(id = R.color.goldenStar),
                         modifier = Modifier.size(40.dp)
                     )
 
@@ -229,13 +240,21 @@ fun BackFab(navController: NavController) {
     }
 }
 
+fun Long.toPrettyDateTime(): String {
+    val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+    return sdf.format(Date(this))
+}
+
+fun Long.getTimeAgo(): String {
+    return DateUtils.getRelativeTimeSpanString(
+        this,
+        System.currentTimeMillis(),
+        DateUtils.MINUTE_IN_MILLIS
+    ).toString()
+}
+
 @Composable
 @Preview(showBackground = true)
 fun LocationsReviewScreenPreview() {
     LocationReviewsScreen(navController = rememberNavController())
-}
-
-fun Long.toPrettyDateTime(): String {
-    val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
-    return sdf.format(Date(this))
 }

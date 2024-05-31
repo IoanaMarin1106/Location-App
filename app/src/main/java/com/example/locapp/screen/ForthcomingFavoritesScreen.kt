@@ -1,4 +1,3 @@
-package com.example.locapp.screen
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
@@ -38,6 +37,9 @@ import androidx.navigation.NavHostController
 import com.example.locapp.MainActivity
 import com.example.locapp.R
 import com.example.locapp.collector.LocationInfo
+import com.example.locapp.screen.MapMarker
+import com.example.locapp.screen.NotificationFab
+import com.example.locapp.screen.ScreenHolder
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.CameraPositionState

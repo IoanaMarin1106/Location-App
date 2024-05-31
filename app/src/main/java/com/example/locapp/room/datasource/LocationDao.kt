@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import com.example.locapp.room.entity.Location
 import kotlinx.coroutines.flow.Flow
 
@@ -17,6 +18,16 @@ interface LocationDao {
 
     @Query("SELECT * FROM locations WHERE NOT used_for_training ORDER BY id")
     fun getLocationsForTraining(): List<Location>
+
+    @Query("UPDATE locations SET used_for_training = 1 WHERE used_for_training = 0")
+    fun markLocationsAsUsedForTraining()
+
+    @Transaction
+    fun getLocationsForTrainingAndMarkAsUsed(): List<Location> {
+        val locations = getLocationsForTraining()
+        markLocationsAsUsedForTraining()
+        return locations
+    }
 
     @Query("SELECT DISTINCT place_id FROM locations ORDER BY id DESC LIMIT 3")
     fun getLastThreeEntries(): Flow<List<Int>>

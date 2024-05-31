@@ -9,4 +9,5 @@
     <color name="colorSecondaryDark">#1A237E</color>
     <color name="colorAccent1">#F44336</color>
     <color name="colorAccent2">#4CAF50</color>
+    <color name="goldenStar">#FFD700</color>
 </resources>

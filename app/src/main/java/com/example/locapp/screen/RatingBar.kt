@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.vectorResource
 import com.example.locapp.R
 
@@ -16,7 +17,7 @@ fun RatingBar(
     rating: Double = 0.0,
     stars: Int = 5,
     onRatingChanged: (Double) -> Unit,
-    starsColor: Color = Color.Yellow
+    starsColor: Color = colorResource(id = R.color.goldenStar)
 ) {
     Row {
         for (index in 1..stars) {

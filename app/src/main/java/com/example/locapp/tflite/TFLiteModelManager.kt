@@ -2,13 +2,10 @@ package com.example.locapp.tflite
 
 import android.util.Log
 import com.example.locapp.MainActivity
-import com.example.locapp.collector.DataCollector
 import com.example.locapp.room.entity.Location
 import com.example.locapp.room.repository.Repository
 import com.example.locapp.utils.Utils
 import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.tensorflow.lite.Interpreter
 import java.io.File
@@ -99,6 +96,7 @@ class TFLiteModelManager @Inject constructor(
         val outputs: Map<String, Any> = HashMap()
 
         interpreter.runSignature(inputs, outputs, SAVE)
+        Log.d(TAG, outputs.toString())
 
         return outputFile.absolutePath
     }
@@ -109,7 +107,7 @@ class TFLiteModelManager @Inject constructor(
         val inputs: MutableMap<String, Any> = HashMap()
         inputs["checkpoint_path"] = checkpointFile.absolutePath
 
-        val outputs: Map<String, Any> = HashMap()
+        val outputs: MutableMap<String, Any> = HashMap()
 
         interpreter.runSignature(inputs, outputs, RESTORE)
 
@@ -154,13 +152,11 @@ class TFLiteModelManager @Inject constructor(
         var locations = emptyList<Location>()
 
         runBlocking {
-            GlobalScope.launch {
-                locations = repository.getLocationsForTraining()
-            }
+            locations = repository.getLocationsForTrainingAndMarkAsUsed()
         }
 
         locations.forEach {
-            features.add(floatArrayOf(it.hour.toFloat(), it.day.toFloat()))
+            features.add(floatArrayOf(it.hour.toFloat(), it.day.toFloat(), it.rating.toFloat()))
 
             val placeLabel = FloatArray(NUMBER_OF_KNOWN_PLACES) {0f}
             placeLabel[it.place_id] = 1f

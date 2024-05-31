@@ -1,5 +1,6 @@
 package com.example.locapp.screen
 
+import ForthcomingFavoritesScreen
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController

@@ -17,6 +17,8 @@ interface Repository {
 
     suspend fun getLocationsForTraining(): List<Location>
 
+    suspend fun getLocationsForTrainingAndMarkAsUsed(): List<Location>
+
     suspend fun getLocationsWIthInProgressReview(): Flow<List<Location>>
 
     suspend fun getNotificationsCount(): Flow<Int>
@@ -42,6 +44,12 @@ class RepositoryImpl @Inject constructor(
     override suspend fun getLocationsForTraining(): List<Location> {
         return withContext(IO) {
             dao.getLocationsForTraining()
+        }
+    }
+
+    override suspend fun getLocationsForTrainingAndMarkAsUsed(): List<Location> {
+        return withContext(IO) {
+            dao.getLocationsForTrainingAndMarkAsUsed()
         }
     }
 

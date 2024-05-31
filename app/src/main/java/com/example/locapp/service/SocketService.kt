@@ -17,6 +17,7 @@ import com.example.locapp.room.repository.Repository
 import com.example.locapp.tflite.TFLiteModelManager
 import com.example.locapp.utils.Utils
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -82,7 +83,9 @@ class SocketService: Service() {
             toast.setGravity(Gravity.TOP, 0, 200)
             toast.show()
         }
-    };
+    }
+
+    @OptIn(DelicateCoroutinesApi::class)
     private fun onMessageReceived() {
         val startTrainListener: (String) -> Unit = { subfolder ->
             GlobalScope.launch {
@@ -139,10 +142,12 @@ class SocketService: Service() {
                     .build()
 
                 try {
+                    Log.d(TAG, "URL: ${request.url}")
+                    Log.d(TAG, "")
                     val response = okHttpClient.newCall(request).execute()
                     Log.d(TAG, "Response: $response")
                 } catch (e: IOException) {
-                    e.printStackTrace()
+                    Log.e(TAG, e.message, e)
                 }
             }
         }
@@ -168,6 +173,7 @@ class SocketService: Service() {
 
                 // Restore model weights from checkpoint
                 Log.d(TAG, "Restoring model weights from checkpoint...")
+                Thread.sleep(1000)
                 val restored = modelManager.restoreModel("${MainActivity.checkpointsDirectoryPath}/$checkpointPath")
 
                 if (restored) {
