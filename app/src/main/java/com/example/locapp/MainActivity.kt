@@ -4,18 +4,15 @@ import android.Manifest
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.os.Environment
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import androidx.room.Room
@@ -23,16 +20,26 @@ import com.example.locapp.collector.JsonReader
 import com.example.locapp.collector.Place
 import com.example.locapp.downloader.DownloadReceiver
 import com.example.locapp.room.datasource.RoomDatabase
+import com.example.locapp.room.entity.Location
+import com.example.locapp.room.repository.Repository
 import com.example.locapp.screen.ScreenHolder
 import com.example.locapp.screen.SetUpNavGraph
 import com.example.locapp.service.LocationService
 import com.example.locapp.service.SocketService
+import com.example.locapp.socket.SdkManager
+import com.example.locapp.socket.TrainingDataProvider
+import com.example.locapp.tflite.TFLiteModelManager
 import com.example.locapp.ui.theme.LocAppTheme
 import com.example.locapp.utils.Utils
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.runBlocking
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var repository: Repository
 
     private val utils: Utils = Utils()
 
@@ -40,9 +47,6 @@ class MainActivity : ComponentActivity() {
 
     companion object {
         private const val TAG = "MAIN ACTIVITY"
-
-        val checkpointsDirectoryPath = Environment.getExternalStorageDirectory().path + "/Download/Checkpoints"
-        val modelDirectory = Environment.getExternalStorageDirectory().path + "/Download/Model"
 
         lateinit var placeList: List<Place>
         lateinit var database: RoomDatabase
@@ -52,6 +56,14 @@ class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        SdkManager.setTrainingDataProvider(object : TrainingDataProvider {
+            override fun getTrainingData(): Pair<MutableList<FloatArray>, MutableList<FloatArray>> {
+                return getDataForTraining()
+            }
+        })
+
+        SdkManager.startSocketService(this)
 
         // Example usage:
         placeList = JsonReader.readJsonFromAssets("places-mobile.json", this.applicationContext)
@@ -80,12 +92,6 @@ class MainActivity : ComponentActivity() {
                 "locations_database"
             ).fallbackToDestructiveMigration().build()
 
-        // create checkpoints directory & model if not exist
-        var result = utils.createDirectoryIfNotExists(checkpointsDirectoryPath)
-        Log.d(TAG, "Checkpoints directory creation result: $result")
-
-        result = utils.createDirectoryIfNotExists(modelDirectory)
-        Log.d(TAG, "Model directory creation result: $result")
 
 
         // ---------------------  APPLICATION UI ------------------------------------
@@ -105,13 +111,33 @@ class MainActivity : ComponentActivity() {
                     }
 
                     SetUpNavGraph(navController = navController)
-
-                    LocalContext.current.apply {
-                        startService(Intent(LocalContext.current, SocketService::class.java))
-                    }
                 }
             }
         }
+    }
+
+    private fun getDataForTraining(): Pair<MutableList<FloatArray>, MutableList<FloatArray>> {
+        val features = mutableListOf<FloatArray>()
+        val labels = mutableListOf<FloatArray>()
+
+        var locations = emptyList<Location>()
+
+        runBlocking {
+            locations = repository.getLocationsForTrainingAndMarkAsUsed()
+        }
+
+        locations.forEach {
+            features.add(floatArrayOf(it.hour.toFloat(), it.day.toFloat(), it.rating.toFloat()))
+
+            val placeLabel = FloatArray(TFLiteModelManager.NUMBER_OF_KNOWN_PLACES) { 0f }
+            placeLabel[it.place_id] = 1f
+            labels.add(placeLabel)
+        }
+
+        Log.d("MainActivity", "Features: $features")
+        Log.d("MainActivity", "Labels: $labels")
+
+        return features to labels
     }
     
     private fun requestPermissionsSafely(

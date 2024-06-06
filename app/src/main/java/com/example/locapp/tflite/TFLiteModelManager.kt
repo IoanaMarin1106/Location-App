@@ -1,9 +1,10 @@
 package com.example.locapp.tflite
 
 import android.util.Log
-import com.example.locapp.MainActivity
 import com.example.locapp.room.entity.Location
 import com.example.locapp.room.repository.Repository
+import com.example.locapp.service.SocketService
+import com.example.locapp.socket.SdkManager
 import com.example.locapp.utils.Utils
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.runBlocking
@@ -41,15 +42,16 @@ class TFLiteModelManager @Inject constructor(
     }
 
     init {
-        while(!File("${MainActivity.modelDirectory}/mobility_model.tflite").exists()) {
+        while(!File("${SocketService.modelDirectory}/mobility_model.tflite").exists()) {
             Log.d(TAG, "Mobility model does not exists.")
             Thread.sleep(100)
         }
 
-        interpreter = Interpreter(File("${MainActivity.modelDirectory}/mobility_model.tflite"))
+        interpreter = Interpreter(File("${SocketService.modelDirectory}/mobility_model.tflite"))
     }
+
     fun trainModel(): Float {
-        val (features, labels) = getDataForTraining()
+        val (features, labels) = SdkManager.getTrainingDataProvider()!!.getTrainingData()
 
         var lastLoss = 0f
 

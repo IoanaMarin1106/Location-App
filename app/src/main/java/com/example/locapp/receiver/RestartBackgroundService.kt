@@ -6,7 +6,7 @@ import android.content.Intent
 import android.util.Log
 import android.widget.Toast
 import com.example.locapp.service.LocationService
-import com.example.locapp.service.SocketService
+import com.example.locapp.socket.SdkManager
 
 class RestartBackgroundService: BroadcastReceiver() {
     private val TAG = "Broadcast Listened"
@@ -16,6 +16,9 @@ class RestartBackgroundService: BroadcastReceiver() {
         Toast.makeText(context, "Service restarted", Toast.LENGTH_SHORT).show()
 
         context!!.startForegroundService(Intent(context, LocationService::class.java))
-        context!!.startForegroundService(Intent(context, SocketService::class.java))
+
+        context?.let {
+            SdkManager.startSocketService(it)
+        }
     }
 }

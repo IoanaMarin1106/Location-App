@@ -2,9 +2,7 @@ package com.example.locapp.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.locapp.room.repository.Repository
-import com.example.locapp.tflite.TFLiteModelManager
-import dagger.hilt.android.internal.lifecycle.HiltViewModelMap
+import com.example.locapp.socket.SdkManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,12 +12,9 @@ import java.time.LocalDateTime
 import javax.inject.Inject
 
 @HiltViewModel
-class PredictionsSharedViewModel @Inject constructor(
-    repository: Repository
-): ViewModel() {
+class PredictionsSharedViewModel @Inject constructor(): ViewModel() {
     private val MAXIMUM_RATING = 5
 
-    private val _modelManager = TFLiteModelManager(repository = repository)
 
     private val _predictionsState = MutableStateFlow(PredictionsState())
     val predictionsState: StateFlow<PredictionsState> = _predictionsState.asStateFlow()
@@ -43,6 +38,6 @@ class PredictionsSharedViewModel @Inject constructor(
         val hour = currentLocalDate.hour
         val day = currentLocalDate.dayOfWeek.ordinal
 
-        return _modelManager.predict(day, hour, MAXIMUM_RATING)
+        return SdkManager.predict(day, hour, MAXIMUM_RATING)!!
     }
 }
